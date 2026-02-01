@@ -1,0 +1,56 @@
+- name: Ensure /etc/kubernetes exists
+  file:
+    path: /etc/kubernetes
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Initialize cluster
+  command: >
+    kubeadm init
+    --apiserver-advertise-address={{ hostvars[inventory_hostname].private_ip }}
+    --pod-network-cidr=10.244.0.0/16
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Ensure .kube directory exists for ubuntu
+  file:
+    path: /home/ubuntu/.kube
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: 0755
+
+- name: Copy admin.conf for ubuntu
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/ubuntu/.kube/config
+    remote_src: yes
+    owner: ubuntu
+    group: ubuntu
+    mode: 0600
+
+- name: Wait for kube-apiserver to be ready
+  shell: |
+    kubectl --kubeconfig=/home/ubuntu/.kube/config get nodes
+  register: kube_ready
+  retries: 5
+  delay: 10
+  until: kube_ready.rc == 0
+  become: no
+
+- name: Install Flannel CNI
+  shell: kubectl --kubeconfig=/home/ubuntu/.kube/config apply -f https://raw.githubusercontent.com/flannel-io/flannel/v0.25.4/Documentation/kube-flannel.yml
+  args:
+    creates: /etc/cni/net.d/10-flannel.conflist
+  become: no
+
+- name: Generate kubeadm join command
+  command: kubeadm token create --print-join-command
+  register: join_cmd
+  changed_when: false
+
+- name: Set join_command fact for worker nodes
+  set_fact:
+    join_command: "{{ join_cmd.stdout }}"

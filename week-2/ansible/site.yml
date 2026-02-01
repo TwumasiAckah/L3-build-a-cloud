@@ -1,0 +1,17 @@
+- name: Common Kubernetes prerequisites
+  hosts: all
+  become: yes
+  roles:
+    - common
+
+- name: Initialize control plane
+  hosts: control_plane
+  become: yes
+  roles:
+    - control-plane
+
+- name: Join worker nodes
+  hosts: workers
+  become: yes
+  roles:
+    - worker
