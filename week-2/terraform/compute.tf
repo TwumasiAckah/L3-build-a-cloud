@@ -17,8 +17,6 @@ resource "openstack_compute_instance_v2" "control_plane" {
   }
 
   depends_on = [openstack_networking_router_interface_v2.vm_iface]
-
-  # user_data = file("../cloud-init.yaml")
 }
 
 # Create Worker Node
@@ -35,14 +33,6 @@ resource "openstack_compute_instance_v2" "worker_node" {
   }
 
   depends_on = [openstack_networking_router_interface_v2.vm_iface]
-
-  # user_data = templatefile(
-  #   "../cloud-init.yaml",
-  #   {
-  #     CONTROL_PLANE_IP = openstack_compute_instance_v2.control_plane.network[0].fixed_ip_v4
-  #     hostname = "worker_node"
-  #   }
-  # )
 }
 
 resource "openstack_networking_floatingip_v2" "control_floatip" {

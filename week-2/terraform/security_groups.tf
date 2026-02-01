@@ -22,7 +22,7 @@ resource "openstack_networking_secgroup_rule_v2" "k8s_api" {
   protocol          = "tcp"
   port_range_min    = 6443
   port_range_max    = 6443
-  remote_ip_prefix  = "0.0.0.0/0"
+  remote_ip_prefix  = "192.168.233.0/24"
   security_group_id = openstack_networking_secgroup_v2.k8s_sec_group.id
 }
 
@@ -31,7 +31,7 @@ resource "openstack_networking_secgroup_rule_v2" "allow_ping" {
   direction         = "ingress"
   ethertype         = "IPv4"
   protocol          = "icmp"
-  remote_ip_prefix  = "192.168.233.0/24"
+  remote_ip_prefix  = "0.0.0.0/0"
   security_group_id = openstack_networking_secgroup_v2.k8s_sec_group.id
 }
 
