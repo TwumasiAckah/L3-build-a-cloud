@@ -8,14 +8,16 @@ spec:
   source:
     repoURL: https://github.com/TwumasiAckah/L3-build-a-cloud.git
     targetRevision: main
-    path: week-3/app-2/cluster/
+    path: week-3/app-2/cluster # Watch the whole folder
+    directory:
+      recurse: true # Look into subfolders
   destination:
     server: https://kubernetes.default.svc
-    namespace: cnpg-system
+    namespace: cnpg-system # Operator goes here
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
+      - ServerSideApply=true # Critical for CRDs

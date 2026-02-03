@@ -4,10 +4,10 @@ terraform {
             source  = "stackitcloud/stackit"
             version = "~> 0.79.0"
         }
-        helm = {
-            source  = "hashicorp/helm"
-            version = "~> 2.9.0"
-        }
+        # helm = {
+        #     source  = "hashicorp/helm"
+        #     version = "~> 2.9.0"
+        # }
     }
 }
 
