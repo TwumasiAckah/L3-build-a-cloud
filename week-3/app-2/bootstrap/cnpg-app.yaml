@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/TwumasiAckah/L3-build-a-cloud.git
     targetRevision: main
-    path: week-3/app-2/cluster/operators
+    path: week-3/app-2/cluster/
   destination:
     server: https://kubernetes.default.svc
     namespace: cnpg-system
