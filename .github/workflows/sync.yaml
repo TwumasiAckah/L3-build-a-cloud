@@ -1,4 +1,4 @@
-name: GitOps Sync
+name: L3 GitOps Sync
 
 on:
   push:
