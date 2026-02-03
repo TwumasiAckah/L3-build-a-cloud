@@ -13,6 +13,6 @@ jobs:
     steps:
       - name: Trigger ArgoCD Sync
         run: |
-          curl -X POST -H "Authorization: Bearer ${{ secrets.ARGOCD_TOKEN }}" \
+          curl -k -X POST -H "Authorization: Bearer ${{ secrets.ARGOCD_TOKEN }}" \
           -H "Content-Type: application/json" \
           https://${{ secrets.ARGOCD_SERVER }}/api/v1/applications/cnpg-operator/sync
