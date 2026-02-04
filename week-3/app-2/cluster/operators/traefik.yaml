@@ -9,6 +9,11 @@ spec:
     chart: traefik
     repoURL: https://traefik.github.io/charts
     targetRevision: 26.1.0
+    helm:
+      values: |
+        providers:
+          kubernetesGateway:
+            enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
