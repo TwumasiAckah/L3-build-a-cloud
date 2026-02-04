@@ -4,10 +4,10 @@ terraform {
             source  = "stackitcloud/stackit"
             version = "~> 0.79.0"
         }
-        # helm = {
-        #     source  = "hashicorp/helm"
-        #     version = "~> 2.9.0"
-        # }
+        helm = {
+            source  = "hashicorp/helm"
+            version = "~> 2.9.0"
+        }
     }
 }
 
@@ -25,26 +25,26 @@ provider "stackit" {
 #   }
 # }
 
-# locals {
-#   # Parse the raw YAML string into a Terraform object
-#   kubeconfig_data = yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_l3.kube_config)
-# }
+locals {
+  # Parse the raw YAML string into a Terraform object
+  kubeconfig_data = yamldecode(stackit_ske_kubeconfig.ske_kubeconfig_l3.kube_config)
+}
 
-# provider "helm" {
-#   kubernetes {
-#     # Extract values from the decoded YAML structure
-#     host = local.kubeconfig_data.clusters[0].cluster.server
+provider "helm" {
+  kubernetes {
+    # Extract values from the decoded YAML structure
+    host = local.kubeconfig_data.clusters[0].cluster.server
 
-#     client_certificate = base64decode(
-#       local.kubeconfig_data.users[0].user.client-certificate-data
-#     )
+    client_certificate = base64decode(
+      local.kubeconfig_data.users[0].user.client-certificate-data
+    )
     
-#     client_key = base64decode(
-#       local.kubeconfig_data.users[0].user.client-key-data
-#     )
+    client_key = base64decode(
+      local.kubeconfig_data.users[0].user.client-key-data
+    )
     
-#     cluster_ca_certificate = base64decode(
-#       local.kubeconfig_data.clusters[0].cluster.certificate-authority-data
-#     )
-#   }
-# }
+    cluster_ca_certificate = base64decode(
+      local.kubeconfig_data.clusters[0].cluster.certificate-authority-data
+    )
+  }
+}
