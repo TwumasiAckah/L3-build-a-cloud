@@ -1,4 +1,6 @@
 # Common tasks for all nodes
+
+# Disable swap memory for Kubernetes, to ensure predictable resource management annd performance
 - name: Disable swap
   become: true
   shell: |
@@ -20,7 +22,8 @@
     - overlay
     - br_netfilter
 
-- name: Configure sysctl
+# IP table settings to ensure proper routing for bridged traffic
+- name: Configure sysctl 
   copy:
     dest: /etc/sysctl.d/k8s.conf
     content: |
@@ -97,6 +100,7 @@
     state: present
     update_cache: yes
 
+# To maintain a stable Kubernetes environment, we hold the installed packages to prevent automatic updates
 - name: Hold Kubernetes packages
   ansible.builtin.dpkg_selections:
     name: "{{ item }}"

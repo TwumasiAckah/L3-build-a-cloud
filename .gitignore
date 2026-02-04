@@ -10,3 +10,5 @@
 *sa-key-private.pem
 *sa-key.json
 
+week-3/app-1/terraform/l3-cluster.yml
+week-3/app-2/cluster/operators/nginx-ingress.yaml

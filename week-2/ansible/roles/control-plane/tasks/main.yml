@@ -6,6 +6,7 @@
     group: root
     mode: 0755
 
+# Using Flannel CNI default CIDR. Required by CNI plugin
 - name: Initialize cluster
   command: >
     kubeadm init
@@ -22,6 +23,7 @@
     group: ubuntu
     mode: 0755
 
+# Also change ownership to ubuntu user, so the current non-root user can access it
 - name: Copy admin.conf for ubuntu
   copy:
     src: /etc/kubernetes/admin.conf
