@@ -121,7 +121,7 @@ Verify:
 kubectl get pods -n argocd
 ```
 
-### Verify CNPG via GitOps
+### Verify CD
 
 ```bash
 kubectl get pods -n cnpg-system
@@ -145,7 +145,7 @@ Add a CNPG Cluster CR:
 cluster/instances/an_instance.yaml
 ```
 
-ArgoCD applies it → CNPG reconciles it → PostgreSQL is created.
+ArgoCD applies it, CNPG reconciles it, PostgreSQL is created.
 
 Verify:
 
@@ -257,11 +257,11 @@ kubectl exec -it pod/db-test-1 -- psql -U app -d app -c "SELECT version();"
 
 ---
 
-## GitHub Actions → ArgoCD Sync
+## GitHub Actions with ArgoCD Sync
 
 ### 1. Generate ArgoCD Token
 
-- ArgoCD UI → **Settings → Users**
+- ArgoCD UI > **Settings > Users**
 - Select user (e.g. `admin`)
 - Generate a token
 - Copy it immediately
@@ -270,7 +270,7 @@ kubectl exec -it pod/db-test-1 -- psql -U app -d app -c "SELECT version();"
 
 ### 2. Add GitHub Secrets
 
-Repository → **Settings → Secrets and variables → Actions**
+Repository > **Settings > Secrets and variables > Actions**
 
 Add:
 
@@ -294,6 +294,6 @@ This workflow triggers ArgoCD sync via API after every push.
 ### Test the Integration
 
 1. Push `.github/workflows/sync.yaml`
-2. Go to **GitHub → Actions**
+2. Go to **GitHub > Actions**
 3. Look for a green checkmark
 4. ArgoCD should immediately show **Syncing**
