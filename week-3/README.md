@@ -2,8 +2,6 @@
 
 This guide documents how to install the **CloudNativePG (CNPG) PostgreSQL Operator** on Kubernetes using **ArgoCD and GitOps**, including validation, troubleshooting, database creation, and GitHub Actions integration.
 
----
-
 ### Prerequisites
 
 - Kubernetes cluster
@@ -28,8 +26,6 @@ kubectl config current-context
 kubectl get ns
 ```
 
----
-
 ## Insallation via Helm in Terraform, Pod and CRD Validation
 
 app-1 has the files for the operator intallation.
@@ -46,8 +42,6 @@ kubectl get crds | grep postgresql
 kubectl api-resources | grep postgresql
 ```
 
----
-
 ## Troubleshooting Installation
 
 If no pods are running:
@@ -62,7 +56,6 @@ Confirm:
 - Namespace exists
 - `kubectl` is pointing to the correct cluster
 
----
 
 ## Installing CNPG Using ArgoCD (GitOps)
 
@@ -101,7 +94,6 @@ curl -s https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-
 | yq "select(.kind != \"CustomResourceDefinition\")" > cnpg-controller.yaml
 ```
 
----
 
 ### Install ArgoCD
 
@@ -153,8 +145,6 @@ Verify:
 kubectl get cluster
 ```
 
----
-
 ## Accessing ArgoCD
 
 Documentation:
@@ -174,8 +164,6 @@ https://localhost:8080
 
 Ignore the self-signed certificate warning.
 
----
-
 ### Option 2: LoadBalancer
 
 ```bash
@@ -184,8 +172,6 @@ kubectl get svc argocd-server -n argocd
 ```
 
 Use the `EXTERNAL-IP`.
-
----
 
 ## ArgoCD Login
 
@@ -197,7 +183,6 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 -o jsonpath="{.data.password}" | base64 -d; echo
 ```
 
----
 
 ## Check ArgoCD Status
 
@@ -211,8 +196,6 @@ Logs:
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller --tail=20
 kubectl logs -n cnpg-system deployment/cnpg-controller-manager
 ```
-
----
 
 ## Post-Installation Checks
 
@@ -230,7 +213,6 @@ kubectl get pvc
 
 Ensure volumes are provisioned by the cloud provider.
 
----
 
 ## Retrieve Database Password
 
@@ -238,8 +220,6 @@ Ensure volumes are provisioned by the cloud provider.
 kubectl get secret db-test-app \
 -o jsonpath='{.data.password}' | base64 --decode
 ```
-
----
 
 ## Test Database Connection
 
@@ -255,8 +235,6 @@ Exec into it:
 kubectl exec -it pod/db-test-1 -- psql -U app -d app -c "SELECT version();"
 ```
 
----
-
 ## GitHub Actions with ArgoCD Sync
 
 ### 1. Generate ArgoCD Token
@@ -266,7 +244,6 @@ kubectl exec -it pod/db-test-1 -- psql -U app -d app -c "SELECT version();"
 - Generate a token
 - Copy it immediately
 
----
 
 ### 2. Add GitHub Secrets
 
@@ -276,8 +253,6 @@ Add:
 
 - `ARGOCD_TOKEN`
 - `ARGOCD_SERVER`
-
----
 
 ### 3. Create Workflow
 
@@ -289,7 +264,6 @@ Create:
 
 This workflow triggers ArgoCD sync via API after every push.
 
----
 
 ### Test the Integration
 
