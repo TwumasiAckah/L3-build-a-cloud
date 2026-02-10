@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -32,7 +33,7 @@ const (
 // - gvr: identifies the CNPG Cluster resource
 type Client struct {
 	dynamicClient dynamic.Interface
-	clientest    *kubernetes.Clientset
+	clientest     *kubernetes.Clientset
 	namespace     string
 	gvr           schema.GroupVersionResource
 }
@@ -66,7 +67,7 @@ func NewClient(namespace string) (*Client, error) {
 
 	return &Client{
 		dynamicClient: dynamicClient,
-		clientest:    clientset,
+		clientest:     clientset,
 		namespace:     namespace,
 		gvr:           gvr,
 	}, nil
@@ -103,10 +104,10 @@ func getConfig() (*rest.Config, error) {
 func (c *Client) CreateCluster(ctx context.Context, req models.DatabaseCreateRequest) (*models.DatabaseInfo, error) {
 	cluster := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": fmt.Sprintf("%s/%s",  Group, Version),
-			"kind": Kind,
+			"apiVersion": fmt.Sprintf("%s/%s", Group, Version),
+			"kind":       Kind,
 			"metadata": map[string]interface{}{
-				"name": req.Name,
+				"name":      req.Name,
 				"namespace": c.namespace,
 			},
 			"spec": map[string]interface{}{
@@ -140,13 +141,90 @@ func (c *Client) CreateCluster(ctx context.Context, req models.DatabaseCreateReq
 
 }
 
+// GetCluster retrieves a single CNPG cluster by name.
+func (c *Client) GetCluster(ctx context.Context, name string) (*models.DatabaseInfo, error) {
+	cluster, err := c.dynamicClient.
+		Resource(c.gvr).
+		Namespace(c.namespace).
+		Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return c.parseClusterInfo(cluster), nil
+}
 
+// ListClusters returns all CNPG clusters in the namespace.
+func (c *Client) ListClusters(ctx context.Context) ([]models.DatabaseInfo, error) {
+	list, err := c.dynamicClient.
+		Resource(c.gvr).
+		Namespace(c.namespace).
+		List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to list clusters: %w", err)
+	}
+	clusters := make([]models.DatabaseInfo, 0, len(list.Items))
+	for _, item := range list.Items {
+		clusters = append(clusters, *c.parseClusterInfo(&item))
+	}
+	return clusters, nil
+}
 
+// DeleteCluster deletes a CNPG cluster.
+// CNPG handles actual cleanup (PVCs, Pods) based on its configuration.
+func (c *Client) DeleteCluster(ctx context.Context, name string) error {
+	return c.dynamicClient.
+		Resource(c.gvr).
+		Namespace(c.namespace).
+		Delete(ctx, name, metav1.DeleteOptions{})
+}
 
+// GetCredentials fetches database credentials from the Secret
+// created by the CNPG operator.
+func (c *Client) GetCredentials(ctx context.Context, name string) (*models.DatabaseCredentials, error) {
+	// CNPG naming convention: <cluster-name>-app
+	secretName := fmt.Sprintf("%s-app", name)
+
+	secret, err := c.clientest.
+		CoreV1().
+		Secrets(c.namespace).
+		Get(ctx, secretName, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get secret: %w", err)
+	}
+
+	// client-go already decoded the secret
+	username := string(secret.Data["username"])
+	password := string(secret.Data["password"])
+
+	// CNPG service convention
+	host := fmt.Sprintf("%s-rw.%s.svc", name, c.namespace)
+
+	if hostData, ok := secret.Data["host"]; ok {
+		host = string(hostData)
+
+	}
+	database := "app"
+	port := 5432
+
+	connStr := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%d/%s",
+		username, password, host, port, database,
+	)
+	return &models.DatabaseCredentials{
+		Username:         username,
+		Password:         password,
+		Host:             host,
+		Port:             port,
+		Database:         database,
+		ConnectionString: connStr,
+	}, nil
+}
+
+// ###### Helpers ########
 
 // parseClusterInfo converts a raw CNPG Cluster object
 // into a clean API-facing DatabaseInfo model.
-func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.DatabaseInfo{
+func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.DatabaseInfo {
 	spec, _, _ := unstructured.NestedMap(cluster.Object, "spec")
 	status, _, _ := unstructured.NestedMap(cluster.Object, "status")
 	metadata, _, _ := unstructured.NestedMap(cluster.Object, "metadata")
@@ -165,7 +243,7 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 	version := "unknown"
 	if imageName != "" {
 		if parts := strings.Split(imageName, ":"); len(parts) > 1 {
-			version =parts[1]
+			version = parts[1]
 		}
 	}
 
@@ -184,19 +262,29 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 	}
 
 	info := &models.DatabaseInfo{
-		Name: name,
-		Status: dbStatus,
-		Instances: int(instances),
-		ReadyInstances: int(readyInstances),
+		Name:            name,
+		Status:          dbStatus,
+		Instances:       int(instances),
+		ReadyInstances:  int(readyInstances),
 		PostgresVersion: version,
-		StorageSize: storageSize,
+		StorageSize:     storageSize,
 	}
 
 	// Parse creation timestamp if present
 	if CreatedAtStr != "" {
-		if t,  err := time.Parse(time.RFC3339, CreatedAtStr); err == nil {
+		if t, err := time.Parse(time.RFC3339, CreatedAtStr); err == nil {
 			info.CreatedAt = &t
 		}
 	}
 	return info
+}
+
+// decodeSecret decodes Kubernetes Secret data.
+// Kubernetes already base64-encodes values at rest.
+func decodeSecret(data []byte) (string, error) {
+	decoded, err := base64.StdEncoding.DecodeString(string(data))
+	if err != nil {
+		return "", err
+	}
+	return string(decoded), nil
 }
