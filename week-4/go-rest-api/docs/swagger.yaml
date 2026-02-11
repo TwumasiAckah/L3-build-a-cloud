@@ -1,0 +1,239 @@
+definitions:
+  handlers.HealthResponse:
+    properties:
+      service:
+        type: string
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+  models.DatabaseCreateRequest:
+    properties:
+      instances:
+        maximum: 5
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 253
+        minLength: 1
+        type: string
+      postgresql_version:
+        maximum: 18
+        minimum: 12
+        type: integer
+      storage_size:
+        type: string
+      tenantId:
+        type: string
+    required:
+    - instances
+    - name
+    - postgresql_version
+    - storage_size
+    type: object
+  models.DatabaseCredentials:
+    properties:
+      connection_string:
+        type: string
+      database:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      port:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.DatabaseInfo:
+    properties:
+      created_at:
+        type: string
+      instances:
+        type: integer
+      name:
+        type: string
+      postgresql_version:
+        type: string
+      ready_instances:
+        type: integer
+      status:
+        $ref: '#/definitions/models.DatabaseStatus'
+      storage_size:
+        type: string
+    type: object
+  models.DatabaseListResponse:
+    properties:
+      databases:
+        items:
+          $ref: '#/definitions/models.DatabaseInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  models.DatabaseStatus:
+    enum:
+    - ready
+    - creating
+    - failed
+    - deleting
+    - unknown
+    type: string
+    x-enum-varnames:
+    - StatusReady
+    - StatusCreating
+    - StatusFailed
+    - StatusDeleting
+    - StatusUnknown
+  models.ErrorResponse:
+    properties:
+      detail:
+        type: string
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    get:
+      description: Check if the API is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Health check
+      tags:
+      - health
+  /databases:
+    get:
+      description: Get a list of all PostgreSQL database clusters
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DatabaseListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List all database clusters
+      tags:
+      - databases
+    post:
+      consumes:
+      - application/json
+      description: Create a new CloudNativePG database cluster
+      parameters:
+      - description: Database creation request
+        in: body
+        name: database
+        required: true
+        schema:
+          $ref: '#/definitions/models.DatabaseCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.DatabaseInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new PostgreSQL database cluster
+      tags:
+      - databases
+  /databases/{name}:
+    delete:
+      description: Permanently delete a database cluster and all its data
+      parameters:
+      - description: Database name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Database deleted successfully
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a database cluster
+      tags:
+      - databases
+    get:
+      description: Get detailed information about a specific database cluster
+      parameters:
+      - description: Database name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DatabaseInfo'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get database cluster information
+      tags:
+      - databases
+  /databases/{name}/credentials:
+    get:
+      description: Get connection credentials for a database cluster
+      parameters:
+      - description: Database name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DatabaseCredentials'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get database credentials
+      tags:
+      - databases
+swagger: "2.0"

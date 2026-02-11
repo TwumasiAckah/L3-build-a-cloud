@@ -16,3 +16,13 @@ week-3/app-2/cluster/operators/nginx-ingress.yaml
 *gateway.yaml
 *gateway-setup.yaml
 *traefik.yaml
+
+# Binaries
+*bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Environment files
+*.env

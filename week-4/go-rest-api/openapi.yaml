@@ -1,0 +1,198 @@
+openapi: 3.0.3
+
+info:
+  title: PostgreSQL PaaS API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: database
+
+paths:
+  /:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /databases:
+    post:
+      summary: Create database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DatabaseCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseInfo'
+        '400':
+          description: Invalid request
+        '409':
+          description: Already exists
+        '500':
+          description: Server error
+
+    get:
+      summary: List databases
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseListResponse'
+        '500':
+          description: Server error
+
+  /databases/{name}:
+    parameters:
+      - $ref: '#/components/parameters/DatabaseName'
+
+    get:
+      summary: Get database
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseInfo'
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete database
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+
+  /databases/{name}/credentials:
+    parameters:
+      - $ref: '#/components/parameters/DatabaseName'
+
+    get:
+      summary: Get credentials
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatabaseCredentials'
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+
+components:
+  parameters:
+    DatabaseName:
+      name: name
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+        version:
+          type: string
+
+    DatabaseCreateRequest:
+      type: object
+      required:
+        - name
+        - instances
+        - storage_size
+        - postgresql_version
+      properties:
+        name:
+          type: string
+        instances:
+          type: integer
+          minimum: 1
+        storage_size:
+          type: string
+        postgresql_version:
+          type: integer
+
+    DatabaseInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+        instances:
+          type: integer
+        ready_instances:
+          type: integer
+        postgresql_version:
+          type: string
+        storage_size:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    DatabaseListResponse:
+      type: object
+      properties:
+        databases:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatabaseInfo'
+        total:
+          type: integer
+
+    DatabaseCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        host:
+          type: string
+        port:
+          type: integer
+        database:
+          type: string
+        connection_string:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
