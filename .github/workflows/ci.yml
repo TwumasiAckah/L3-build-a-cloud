@@ -40,8 +40,5 @@ jobs:
       - name: Run tests
         run: go test -v -race ./...
 
-      - name: Build binary
-        run: go build -v ./...
-
       - name: Build Docker image (no push)
         run: docker build -t postgres-api:test .
