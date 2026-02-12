@@ -33,7 +33,7 @@ jobs:
 
       - name: Update image tag in deployment
         run: |
-          sed -i "s|image:.*|image: $IMAGE_NAME:${{ github.sha }}|g" /deploy/deployment.yaml
+          sed -i "s|image:.*|image: $IMAGE_NAME:${{ github.sha }}|g" deploy/deployment.yaml
 
       - name: Commit updated deployment
         run: |
