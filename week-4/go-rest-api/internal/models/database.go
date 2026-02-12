@@ -48,3 +48,8 @@ type ErrorResponse struct {
 	Error  string `json:"error"`
 	Detail string `json:"detail,omitempty"`
 }
+
+type DatabaseUpdateRequest struct {
+	Instances   *int    `json:"instances,omitempty"`
+	StorageSize *string `json:"storage_size,omitempty"`
+}

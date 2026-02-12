@@ -87,6 +87,13 @@ definitions:
     - StatusFailed
     - StatusDeleting
     - StatusUnknown
+  models.DatabaseUpdateRequest:
+    properties:
+      instances:
+        type: integer
+      storage_size:
+        type: string
+    type: object
   models.ErrorResponse:
     properties:
       detail:
@@ -207,6 +214,44 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get database cluster information
+      tags:
+      - databases
+    patch:
+      consumes:
+      - application/json
+      description: Update database cluster configuration (instances, storage)
+      parameters:
+      - description: Database name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Update request
+        in: body
+        name: update
+        required: true
+        schema:
+          $ref: '#/definitions/models.DatabaseUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DatabaseInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update database cluster
       tags:
       - databases
   /databases/{name}/credentials:

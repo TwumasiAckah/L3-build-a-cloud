@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strings"
 	"week-4/go-rest-api/internal/k8s"
 	"week-4/go-rest-api/internal/models"
 
@@ -17,6 +18,7 @@ type K8sClient interface {
 	ListClusters(context.Context) ([]models.DatabaseInfo, error)
 	DeleteCluster(context.Context, string) error
 	GetCredentials(context.Context, string) (*models.DatabaseCredentials, error)
+	UpdateCluster(context.Context, string, map[string]interface{}) (*models.DatabaseInfo, error)
 }
 
 // DatabaseHandler handles database-related endpoints
@@ -179,6 +181,68 @@ func (h *DatabaseHandler) GetCredentials(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, creds)
+}
+
+// UpdateDatabase updates a database cluster
+// @Summary Update database cluster
+// @Description Update database cluster configuration (instances, storage)
+// @Tags databases
+// @Accept json
+// @Produce json
+// @Param name path string true "Database name"
+// @Param update body models.DatabaseUpdateRequest true "Update request"
+// @Success 200 {object} models.DatabaseInfo
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /databases/{name} [patch]
+func (h *DatabaseHandler) UpdateDatabase(c *gin.Context) {
+	name := c.Param("name")
+
+	var req models.DatabaseUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "Invalid request", err)
+		return
+	}
+
+	// Validate at least one field is being updated
+	if req.Instances == nil && req.StorageSize == nil {
+		respondMessage(c, http.StatusBadRequest, "No updates provided", "")
+		return
+	}
+
+	// Check if cluster exists
+	_, err := h.k8sClient.GetCluster(c.Request.Context(), name)
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			respondMessage(c, http.StatusNotFound, "Database not found", "No database cluster found with this name")
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "Failed to get database", err)
+		return
+	}
+
+	// Prepare updates
+	updates := make(map[string]interface{})
+	if req.Instances != nil {
+		updates["instances"] = *req.Instances
+	}
+	if req.StorageSize != nil {
+		updates["storage"] = map[string]interface{}{"size": *req.StorageSize}
+	}
+
+	// Apply updates
+	updated, err := h.k8sClient.UpdateCluster(c.Request.Context(), name, updates)
+	if err != nil {
+		if strings.Contains(err.Error(), "cannot decrease storage") {
+			respondError(c, http.StatusBadRequest, "Invalid update", err)
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "Failed to update database", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, updated)
 }
 
 // Helpers

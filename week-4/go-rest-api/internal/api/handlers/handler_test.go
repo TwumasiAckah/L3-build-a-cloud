@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,6 +26,7 @@ type MockK8sClient struct {
 	ListClustersFunc   func(context.Context) ([]models.DatabaseInfo, error)
 	DeleteClusterFunc  func(context.Context, string) error
 	GetCredentialsFunc func(context.Context, string) (*models.DatabaseCredentials, error)
+	UpdateClusterFunc  func(context.Context, string, map[string]interface{}) (*models.DatabaseInfo, error)
 }
 
 func (m *MockK8sClient) CreateCluster(ctx context.Context, r models.DatabaseCreateRequest) (*models.DatabaseInfo, error) {
@@ -32,7 +34,10 @@ func (m *MockK8sClient) CreateCluster(ctx context.Context, r models.DatabaseCrea
 }
 
 func (m *MockK8sClient) GetCluster(ctx context.Context, name string) (*models.DatabaseInfo, error) {
-	return m.GetClusterFunc(ctx, name)
+	if m.GetClusterFunc != nil {
+		return m.GetClusterFunc(ctx, name)
+	}
+	return nil, k8serrors.NewNotFound(schema.GroupResource{}, name)
 }
 
 func (m *MockK8sClient) ListClusters(ctx context.Context) ([]models.DatabaseInfo, error) {
@@ -45,6 +50,13 @@ func (m *MockK8sClient) DeleteCluster(ctx context.Context, name string) error {
 
 func (m *MockK8sClient) GetCredentials(ctx context.Context, name string) (*models.DatabaseCredentials, error) {
 	return m.GetCredentialsFunc(ctx, name)
+}
+
+func (m *MockK8sClient) UpdateCluster(ctx context.Context, name string, updates map[string]interface{}) (*models.DatabaseInfo, error) {
+	if m.UpdateClusterFunc != nil {
+		return m.UpdateClusterFunc(ctx, name, updates)
+	}
+	return nil, nil
 }
 
 //
@@ -62,6 +74,7 @@ func setupTestRouter(mock *MockK8sClient) *gin.Engine {
 	router.GET("/databases/:name", h.GetDatabase)
 	router.DELETE("/databases/:name", h.DeleteDatabase)
 	router.GET("/databases/:name/credentials", h.GetCredentials)
+	router.PATCH("/databases/:name", h.UpdateDatabase)
 
 	return router
 }
@@ -223,5 +236,81 @@ func TestGetCredentials_Success(t *testing.T) {
 
 	if creds.Username != "app" {
 		t.Fatalf("expected username 'app', got '%s'", creds.Username)
+	}
+}
+
+func TestUpdateDatabase(t *testing.T) {
+	tests := []struct {
+		name     string
+		mock     *MockK8sClient
+		update   map[string]interface{}
+		expected int
+	}{
+		{
+			name: "success update instances",
+			mock: &MockK8sClient{
+				GetClusterFunc: func(ctx context.Context, name string) (*models.DatabaseInfo, error) {
+					// Return current DB info
+					return &models.DatabaseInfo{Name: name, Instances: 1, StorageSize: "1Gi"}, nil
+				},
+				UpdateClusterFunc: func(ctx context.Context, name string, updates map[string]interface{}) (*models.DatabaseInfo, error) {
+					// Return DB info after update
+					instances := 1
+					if v, ok := updates["instances"].(int); ok {
+						instances = v
+					}
+					storage := "1Gi"
+					if s, ok := updates["storage"].(map[string]interface{}); ok {
+						storage = s["size"].(string)
+					}
+					return &models.DatabaseInfo{Name: name, Instances: instances, StorageSize: storage}, nil
+				},
+			},
+			update:   map[string]interface{}{"instances": 3},
+			expected: http.StatusOK,
+		},
+		{
+			name: "cluster not found",
+			mock: &MockK8sClient{
+				GetClusterFunc: func(ctx context.Context, name string) (*models.DatabaseInfo, error) {
+					return nil, k8serrors.NewNotFound(schema.GroupResource{}, name)
+				},
+			},
+			update:   map[string]interface{}{"instances": 2},
+			expected: http.StatusNotFound,
+		},
+		{
+			name: "cannot decrease storage",
+			mock: &MockK8sClient{
+				GetClusterFunc: func(ctx context.Context, name string) (*models.DatabaseInfo, error) {
+					return &models.DatabaseInfo{Name: name, Instances: 2, StorageSize: "2Gi"}, nil
+				},
+				UpdateClusterFunc: func(ctx context.Context, name string, updates map[string]interface{}) (*models.DatabaseInfo, error) {
+					if storage, ok := updates["storage"].(map[string]interface{}); ok {
+						if storage["size"] == "1Gi" {
+							return nil, fmt.Errorf("cannot decrease storage from 2Gi to 1Gi")
+						}
+					}
+					return &models.DatabaseInfo{Name: name, Instances: 2, StorageSize: "2Gi"}, nil
+				},
+			},
+			update:   map[string]interface{}{"storage_size": "1Gi"},
+			expected: http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			router := setupTestRouter(tt.mock)
+
+			// Convert map[string]interface{} to JSON body
+			// body, _ := json.Marshal(tt.update)
+			url := "/databases/db1"
+			resp := performRequest(router, "PATCH", url, tt.update)
+
+			if resp.Code != tt.expected {
+				t.Fatalf("expected %d, got %d", tt.expected, resp.Code)
+			}
+		})
 	}
 }

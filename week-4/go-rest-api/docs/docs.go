@@ -183,6 +183,63 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "description": "Update database cluster configuration (instances, storage)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "databases"
+                ],
+                "summary": "Update database cluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Database name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update request",
+                        "name": "update",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DatabaseUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DatabaseInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/databases/{name}/credentials": {
@@ -353,6 +410,17 @@ const docTemplate = `{
                 "StatusDeleting",
                 "StatusUnknown"
             ]
+        },
+        "models.DatabaseUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "instances": {
+                    "type": "integer"
+                },
+                "storage_size": {
+                    "type": "string"
+                }
+            }
         },
         "models.ErrorResponse": {
             "type": "object",

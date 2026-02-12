@@ -220,6 +220,62 @@ func (c *Client) GetCredentials(ctx context.Context, name string) (*models.Datab
 	}, nil
 }
 
+// UpdateCluster updates an existing CNPG cluster with new instances or storage size.
+func (c *Client) UpdateCluster(ctx context.Context, name string, updates map[string]interface{}) (*models.DatabaseInfo, error) {
+	// Fetch the current cluster
+	cluster, err := c.dynamicClient.
+		Resource(c.gvr).
+		Namespace(c.namespace).
+		Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	// Extract the spec map
+	spec, found, err := unstructured.NestedMap(cluster.Object, "spec")
+	if err != nil || !found {
+		return nil, fmt.Errorf("failed to get cluster spec: %w", err)
+	}
+
+	// Update instances if provided
+	if instances, ok := updates["instances"].(int); ok {
+		spec["instances"] = int64(instances)
+	}
+
+	// Update storage if provided
+	if storage, ok := updates["storage"].(map[string]interface{}); ok {
+		if size, ok := storage["size"].(string); ok {
+			// Get current storage size
+			currentSize, _, _ := unstructured.NestedString(spec, "storage", "size")
+
+			// Prevent decreasing storage
+			if currentSize != "" && parseStorageSize(size) < parseStorageSize(currentSize) {
+				return nil, fmt.Errorf("cannot decrease storage from %s to %s", currentSize, size)
+			}
+
+			// Apply new storage size
+			spec["storage"] = map[string]interface{}{"size": size}
+		}
+	}
+
+	// Save updated spec back into cluster object
+	if err := unstructured.SetNestedMap(cluster.Object, spec, "spec"); err != nil {
+		return nil, fmt.Errorf("failed to set cluster spec: %w", err)
+	}
+
+	// Apply update to Kubernetes
+	updatedCluster, err := c.dynamicClient.
+		Resource(c.gvr).
+		Namespace(c.namespace).
+		Update(ctx, cluster, metav1.UpdateOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update cluster: %w", err)
+	}
+
+	// Return consistent DatabaseInfo like CreateCluster/GetCluster
+	return c.parseClusterInfo(updatedCluster), nil
+}
+
 // ###### Helpers ########
 
 // parseClusterInfo converts a raw CNPG Cluster object
@@ -277,6 +333,31 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 		}
 	}
 	return info
+}
+
+// parseStorageSize converts a storage size string (e.g., "1Gi", "500Mi") to bytes.
+// Returns 0 if parsing fails or input is empty.
+func parseStorageSize(sizeStr string) int64 {
+	if sizeStr == "" {
+		return 0
+	}
+
+	var value int64
+	var unit string
+
+	_, err := fmt.Sscanf(sizeStr, "%d%s", &value, &unit)
+	if err != nil {
+		return 0
+	}
+
+	switch unit {
+	case "Mi":
+		return value * 1024 * 1024
+	case "Gi":
+		return value * 1024 * 1024 * 1024
+	default:
+		return value // fallback: assume bytes
+	}
 }
 
 // decodeSecret decodes Kubernetes Secret data.

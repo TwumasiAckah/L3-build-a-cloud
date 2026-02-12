@@ -42,6 +42,7 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 		api.GET("/databases/:name", dbHandler.GetDatabase)
 		api.DELETE("/databases/:name", dbHandler.DeleteDatabase)
 		api.GET("/databases/:name/credentials", dbHandler.GetCredentials)
+		api.PATCH("/databases/:name", dbHandler.UpdateDatabase)
 	}
 
 	return router
