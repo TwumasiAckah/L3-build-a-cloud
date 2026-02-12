@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login registry.onstackit.cloud -u ${{ secrets.REGISTRY_USER }} --password-stdin
+
+      - name: Build and push image
+        run: |
+          IMAGE=$IMAGE_NAME:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Update image tag in deployment
+        run: |
+          sed -i "s|image:.*|image: $IMAGE_NAME:${{ github.sha }}|g" week-4/go-rest-api/deploy/deployment.yaml
+
+      - name: Commit updated deployment
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git commit -am "Update image to ${{ github.sha }}"
+          git push

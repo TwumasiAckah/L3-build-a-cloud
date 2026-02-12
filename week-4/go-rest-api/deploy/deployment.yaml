@@ -19,8 +19,8 @@ spec:
         - name: stackit-registry-secret
       containers:
         - name: api
-          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:latest
-          imagePullPolicy: Always
+          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:<commit-sha>
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               name: http
@@ -63,7 +63,7 @@ metadata:
 rules:
   - apiGroups: ["postgresql.cnpg.io"]
     resources: ["clusters"]
-    verbs: ["get", "list", "create", "delete", "watch"]
+    verbs: ["get", "list", "create", "delete", "watch", "update", "patch"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list"]
