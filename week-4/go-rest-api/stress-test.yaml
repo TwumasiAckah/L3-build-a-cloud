@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-burner
+spec:
+  containers:
+    - name: burner
+      image: polinux/stress
+      command: ["stress"]
+      args: ["--cpu", "1", "--timeout", "60s"]
+      resources:
+        requests:
+          cpu: "100m"
+        limits:
+          cpu: "500m"
