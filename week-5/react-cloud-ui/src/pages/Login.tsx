@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "../hooks/use-auth";
+import { useAuth } from "../hooks/auth-hooks/use-auth";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -21,36 +21,39 @@ export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
 
-const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  try {
-    await login({ username, password });
-  } catch (error: unknown) {
-    console.error("Login error:", error);
-    toast({
-      title: "Login failed",
-      description: error instanceof Error ? error.message : "An unexpected error occurred",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await login({ username, password });
+    } catch (error: unknown) {
+      toast({
+        title: "Login failed",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-enter">
         <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20">
-            <Database className="w-8 h-8 text-primary-foreground" />
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center
+                      bg-card border border-border
+                      shadow-xl shadow-black/40"
+          >
+            <Database className="w-8 h-8 text-primary" />
           </div>
         </div>
 
-        <Card className="border-border/50 shadow-2xl">
+        <Card className="bg-card border border-border shadow-2xl shadow-black/50">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
               Welcome back
             </CardTitle>
             <CardDescription>
@@ -86,7 +89,7 @@ const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
             <CardFooter className="flex flex-col gap-4">
               <Button
                 type="submit"
-                className="w-full h-11 text-base shadow-lg shadow-primary/20 hover:shadow-primary/30"
+                className="w-full h-11 text-base bg-primary text-background shadow-primary/20 hover:shadow-primary/30"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -95,7 +98,16 @@ const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
                   "Sign In"
                 )}
               </Button>
-
+              <div className="text-center text-sm text-muted-foreground">
+                Demo credentials:{" "}
+                <code className="bg-secondary px-1 py-0.5 rounded text-foreground">
+                  admin
+                </code>
+                /
+                <code className="bg-secondary px-1 py-0.5 rounded text-foreground">
+                  password
+                </code>
+              </div>
             </CardFooter>
           </form>
         </Card>

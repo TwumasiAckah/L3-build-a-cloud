@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import {
   Table,
   TableBody,
@@ -66,7 +66,7 @@ export default function Dashboard() {
               <Skeleton key={i} className="h-32 rounded-xl" />
             ))}
           </div>
-          <Skeleton className="h-[400px] rounded-xl" />
+          <Skeleton className="h-100 rounded-xl" />
         </div>
       </Layout>
     );
@@ -91,7 +91,7 @@ export default function Dashboard() {
 
   const activeCount =
     databases?.filter((d) => d.status === "ready").length || 0;
-  const totalStorage = databases?.length || 0; // update this to sum storageSize
+  const totalStorage = databases?.length || 0;
   const totalInstances =
     databases?.reduce((acc, curr) => acc + curr.instances, 0) || 0;
 

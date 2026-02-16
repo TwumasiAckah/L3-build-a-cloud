@@ -6,7 +6,7 @@ import type {
   UpdateDatabaseRequest,
   DatabaseCredentials,
 } from "../shared/schema";
-import { useAuthHeaders } from "./use-auth";
+import { useAuthHeaders } from "./auth-hooks/use-auth-headers";
 import { useToast } from "./use-toast";
 
 // --- LIST DATABASES ---

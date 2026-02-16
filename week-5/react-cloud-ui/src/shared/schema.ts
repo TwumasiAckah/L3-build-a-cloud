@@ -15,13 +15,13 @@ export const createDatabaseSchema = z.object({
     .max(253, "Name too long")
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
   instances: z.number().min(1).max(5),
-  storage_size: z.number().min(1, "Storage size is required"), // e.g., "10Gi"
+  storage_size: z.string().min(1, "Storage size is required"), // e.g., "10Gi"
   postgresql_version: z.number().min(12).max(18),
 });
 
 export const updateDatabaseSchema = z.object({
   instances: z.number().min(1).max(5).optional(),
-  storage_size: z.number().optional(),
+  storage_size: z.string().optional(),
 });
 
 // === TYPE DEFINITIONS (matching Go models) ===
@@ -47,8 +47,9 @@ export type DatabaseInfo = {
   instances: number;
   ready_instances: number;
   postgresql_version: string;
-  storage_size: number;
+  storage_size: string;
   created_at?: string; // ISO date string
+  region: string;
 };
 
 // Matches DatabaseListResponse in Go

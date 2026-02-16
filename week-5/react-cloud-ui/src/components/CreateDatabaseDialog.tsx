@@ -38,7 +38,8 @@ export function CreateDatabaseDialog() {
     defaultValues: {
       name: "",
       instances: 1,
-      storage_size: 10,
+      storage_size: "10Gi",
+      postgresql_version: 16,
     },
   });
 
@@ -55,12 +56,12 @@ export function CreateDatabaseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold">
           <Plus className="w-4 h-4 mr-2" />
           New Database
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Create Database</DialogTitle>
           <DialogDescription>
@@ -114,16 +115,33 @@ export function CreateDatabaseDialog() {
 
             <FormField
               control={form.control}
-              name="storage"
+              name="storage_size"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Storage: {field.value} GB</FormLabel>
+                  <FormLabel>Storage Size</FormLabel>
+                  <FormControl>
+                    <Input placeholder="10Gi" {...field} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground pt-1">
+                    e.g., 10Gi, 20Gi, 50Gi
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="postgresql_version"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>PostgreSQL Version: {field.value}</FormLabel>
                   <FormControl>
                     <div className="pt-2">
                       <Slider
-                        min={5}
-                        max={100}
-                        step={5}
+                        min={12}
+                        max={17}
+                        step={1}
                         value={[field.value]}
                         onValueChange={(vals) => field.onChange(vals[0])}
                       />

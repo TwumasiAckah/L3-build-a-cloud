@@ -1,18 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { Toaster } from "./components/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { AuthProvider, useAuth } from "./hooks/use-auth";
-
+import { useAuth } from "./hooks/auth-hooks/use-auth";
+import { AuthProvider } from "./contexts/AuthProvider";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DatabaseDetails from "./pages/DatabaseDetails";
-import NotFound from "./pages/NotFound";
-import { Layout } from "./components/Layout";
+import NotFound from "./pages/not-found";
 
-
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+// Protected Route Wrapper
+function ProtectedRoute({
+  component: Component,
+}: {
+  component: React.ComponentType;
+}) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -20,75 +23,51 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Redirect to="/login" />;
   }
 
-  return children;
+  return <Component />;
 }
 
+function Router() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) return null;
+
+  return (
+    <Switch>
+      <Route path="/login">
+        {user ? <Redirect to="/dashboard" /> : <Login />}
+      </Route>
+
+      <Route path="/dashboard">
+        <ProtectedRoute component={Dashboard} />
+      </Route>
+
+      <Route path="/databases/:name">
+        <ProtectedRoute component={DatabaseDetails} />
+      </Route>
+
+      <Route path="/">
+        <Redirect to={user ? "/dashboard" : "/login"} />
+      </Route>
+
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<LoginWrapper />} />
-
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              >
-
-              </Route>
-
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Dashboard />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/databases/:name"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <DatabaseDetails />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </Router>
+          <Router />
+          <Toaster />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
-}
-
-// --- Login Wrapper to redirect if already logged in ---
-function LoginWrapper() {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) return <div className="p-8 text-center">Loading...</div>;
-  if (user) return <Navigate to="/dashboard" replace />;
-
-  return <Login />;
 }
 
 export default App;

@@ -28,7 +28,7 @@ export const api = {
   auth: {
     login: {
       method: "POST" as const,
-      path: "/api/login" as const,
+      path: "/login" as const,
       input: loginSchema,
       responses: {
         200: z.object({
