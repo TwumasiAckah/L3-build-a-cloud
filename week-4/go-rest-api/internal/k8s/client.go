@@ -288,11 +288,11 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 	name, _, _ := unstructured.NestedString(metadata, "name")
 	CreatedAtStr, _, _ := unstructured.NestedString(metadata, "creationTimestamp")
 
-	instances, _, _ := unstructured.NestedInt64(spec, "instances")
+	instances, _, _ := unstructured.NestedInt64(status, "instances")
 	storageSize, _, _ := unstructured.NestedString(spec, "storage", "size")
 	imageName, _, _ := unstructured.NestedString(spec, "imageName")
 
-	readyInstances, _, _ := unstructured.NestedInt64(status, "instances")
+	readyInstances, _, _ := unstructured.NestedInt64(status, "readyInstances")
 	phase, _, _ := unstructured.NestedString(status, "phase")
 
 	// Extract PostgreSQL version from container image tag
