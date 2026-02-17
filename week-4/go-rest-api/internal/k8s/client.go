@@ -5,8 +5,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"week-4/go-rest-api/internal/models"
@@ -112,10 +114,10 @@ func (c *Client) CreateCluster(ctx context.Context, req models.DatabaseCreateReq
 			},
 			"spec": map[string]interface{}{
 				"instances": req.Instances,
-				"imagesName": fmt.Sprintf(
-					"ghcr.io/cloudnative-pg/postgresql:%d",
-					req.PostgresVersion,
-				),
+				// "imageName": fmt.Sprintf(
+				// 	"ghcr.io/cloudnative-pg/postgresql:%d",
+				// 	req.PostgresVersion,
+				// ),
 				"storage": map[string]interface{}{
 					"size": req.StorageSize,
 				},
@@ -338,27 +340,21 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 // parseStorageSize converts a storage size string (e.g., "1Gi", "500Mi") to bytes.
 // Returns 0 if parsing fails or input is empty.
 func parseStorageSize(sizeStr string) int64 {
-	if sizeStr == "" {
-		return 0
-	}
+    sizeStr = strings.TrimSpace(sizeStr)
 
-	var value int64
-	var unit string
+    if strings.HasSuffix(sizeStr, "Gi") {
+        value, _ := strconv.ParseInt(strings.TrimSuffix(sizeStr, "Gi"), 10, 64)
+        return value * 1024 * 1024 * 1024
+    }
 
-	_, err := fmt.Sscanf(sizeStr, "%d%s", &value, &unit)
-	if err != nil {
-		return 0
-	}
+    if strings.HasSuffix(sizeStr, "Mi") {
+        value, _ := strconv.ParseInt(strings.TrimSuffix(sizeStr, "Mi"), 10, 64)
+        return value * 1024 * 1024
+    }
 
-	switch unit {
-	case "Mi":
-		return value * 1024 * 1024
-	case "Gi":
-		return value * 1024 * 1024 * 1024
-	default:
-		return value // fallback: assume bytes
-	}
+    return 0
 }
+
 
 // decodeSecret decodes Kubernetes Secret data.
 // Kubernetes already base64-encodes values at rest.
@@ -368,4 +364,19 @@ func decodeSecret(data []byte) (string, error) {
 		return "", err
 	}
 	return string(decoded), nil
+}
+
+func calculateTotalStorage(databases []models.DatabaseInfo) int64 {
+    var total int64
+
+    for _, db := range databases {
+        total += parseStorageSize(db.StorageSize)
+    }
+
+    return total
+}
+
+func formatBytesToGi(bytes int64) float64 {
+    gi := float64(bytes) / (1024 * 1024 * 1024)
+    return math.Round(gi*100) / 100
 }

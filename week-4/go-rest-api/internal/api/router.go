@@ -27,7 +27,7 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 
 	// Public routes
 	router.GET("/", handlers.NewHealthHandler().Health)
-	router.POST("/login", handlers.Login)
+	router.POST("api/login", handlers.Login)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Protected API
@@ -46,4 +46,3 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 
 	return router
 }
-

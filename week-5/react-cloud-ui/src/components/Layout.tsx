@@ -15,7 +15,7 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-card flex flex-col fixed h-full z-10 hidden md:flex">
+      <aside className="w-64 border-r border-border bg-card flex flex-col fixed h-full z-10 md:flex">
         <div className="p-6 border-b border-border flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
             <Database className="w-5 h-5 text-primary" />

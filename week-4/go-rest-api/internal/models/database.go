@@ -17,7 +17,7 @@ type DatabaseCreateRequest struct {
 	Name            string `json:"name" binding:"required,min=1,max=253"`
 	Instances       int    `json:"instances" binding:"required,min=1,max=5"`
 	StorageSize     string `json:"storage_size" binding:"required"`
-	PostgresVersion int    `json:"postgresql_version" binding:"required,min=12,max=18"`
+	PostgresVersion int    `json:"postgresql_version"`
 }
 
 type DatabaseInfo struct {
@@ -33,6 +33,8 @@ type DatabaseInfo struct {
 type DatabaseListResponse struct {
 	Databases []DatabaseInfo `json:"databases"`
 	Total     int            `json:"total"`
+    TotalStorageGi   float64        `json:"total_storage_gi"`
+    TotalStorageByte int64          `json:"total_storage_bytes"`
 }
 
 type DatabaseCredentials struct {
@@ -52,4 +54,9 @@ type ErrorResponse struct {
 type DatabaseUpdateRequest struct {
 	Instances   *int    `json:"instances,omitempty"`
 	StorageSize *string `json:"storage_size,omitempty"`
+}
+
+type StorageSummary struct {
+    TotalBytes int64   `json:"total_bytes"`
+    TotalGi    float64 `json:"total_gi"`
 }

@@ -117,9 +117,15 @@ func (h *DatabaseHandler) ListDatabases(c *gin.Context) {
 		})
 		return
 	}
+
+	totalBytes := calculateTotalStorage(clusters)
+    totalGi := formatBytesToGi(totalBytes)
+
 	c.JSON(http.StatusOK, models.DatabaseListResponse{
 		Databases: clusters,
 		Total:     len(clusters),
+		TotalStorageGi:   totalGi,
+        TotalStorageByte: totalBytes,
 	})
 
 }

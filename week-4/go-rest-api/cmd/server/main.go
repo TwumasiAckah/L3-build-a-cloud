@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// Get namespace from the environment or use default
-	namespace := getenv("NAMESPACE", "default")
+	namespace := getenv("NAMESPACE", "postgres-clusters")
 	port := getenv("PORT", "8000")
 
 	k8sClient, err := k8s.NewClient(namespace)

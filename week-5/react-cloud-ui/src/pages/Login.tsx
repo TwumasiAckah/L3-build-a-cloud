@@ -99,14 +99,7 @@ export default function Login() {
                 )}
               </Button>
               <div className="text-center text-sm text-muted-foreground">
-                Demo credentials:{" "}
-                <code className="bg-secondary px-1 py-0.5 rounded text-foreground">
-                  admin
-                </code>
-                /
-                <code className="bg-secondary px-1 py-0.5 rounded text-foreground">
-                  password
-                </code>
+                Don't have an account?...Leave!!!
               </div>
             </CardFooter>
           </form>
