@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   DatabaseInfo,
+  DatabaseListResponse,
   CreateDatabaseRequest,
   UpdateDatabaseRequest,
   DatabaseCredentials,
@@ -13,16 +14,13 @@ import { useToast } from "./use-toast";
 export function useDatabases() {
   const headers = useAuthHeaders();
 
-  return useQuery<DatabaseInfo[]>({
+  return useQuery<DatabaseListResponse>({
     queryKey: ["databases", headers.Authorization],
     queryFn: async () => {
       const res = await fetch("/api/databases", { headers });
       if (!res.ok) throw new Error("Failed to fetch databases");
-      const data = (await res.json()) as {
-        databases: DatabaseInfo[];
-        total: number;
-      };
-      return data.databases;
+      const data: DatabaseListResponse = await res.json();
+      return data;
     },
     enabled: !!headers.Authorization,
   });

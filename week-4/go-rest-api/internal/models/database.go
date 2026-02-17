@@ -55,8 +55,3 @@ type DatabaseUpdateRequest struct {
 	Instances   *int    `json:"instances,omitempty"`
 	StorageSize *string `json:"storage_size,omitempty"`
 }
-
-type StorageSummary struct {
-    TotalBytes int64   `json:"total_bytes"`
-    TotalGi    float64 `json:"total_gi"`
-}

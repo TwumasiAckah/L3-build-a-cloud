@@ -5,13 +5,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 	"week-4/go-rest-api/internal/models"
+	"week-4/go-rest-api/internal/service"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -251,7 +250,7 @@ func (c *Client) UpdateCluster(ctx context.Context, name string, updates map[str
 			currentSize, _, _ := unstructured.NestedString(spec, "storage", "size")
 
 			// Prevent decreasing storage
-			if currentSize != "" && parseStorageSize(size) < parseStorageSize(currentSize) {
+			if currentSize != "" && service.ParseStorageSize(size) < service.ParseStorageSize(currentSize) {
 				return nil, fmt.Errorf("cannot decrease storage from %s to %s", currentSize, size)
 			}
 
@@ -337,25 +336,6 @@ func (c *Client) parseClusterInfo(cluster *unstructured.Unstructured) *models.Da
 	return info
 }
 
-// parseStorageSize converts a storage size string (e.g., "1Gi", "500Mi") to bytes.
-// Returns 0 if parsing fails or input is empty.
-func parseStorageSize(sizeStr string) int64 {
-    sizeStr = strings.TrimSpace(sizeStr)
-
-    if strings.HasSuffix(sizeStr, "Gi") {
-        value, _ := strconv.ParseInt(strings.TrimSuffix(sizeStr, "Gi"), 10, 64)
-        return value * 1024 * 1024 * 1024
-    }
-
-    if strings.HasSuffix(sizeStr, "Mi") {
-        value, _ := strconv.ParseInt(strings.TrimSuffix(sizeStr, "Mi"), 10, 64)
-        return value * 1024 * 1024
-    }
-
-    return 0
-}
-
-
 // decodeSecret decodes Kubernetes Secret data.
 // Kubernetes already base64-encodes values at rest.
 func decodeSecret(data []byte) (string, error) {
@@ -364,19 +344,4 @@ func decodeSecret(data []byte) (string, error) {
 		return "", err
 	}
 	return string(decoded), nil
-}
-
-func calculateTotalStorage(databases []models.DatabaseInfo) int64 {
-    var total int64
-
-    for _, db := range databases {
-        total += parseStorageSize(db.StorageSize)
-    }
-
-    return total
-}
-
-func formatBytesToGi(bytes int64) float64 {
-    gi := float64(bytes) / (1024 * 1024 * 1024)
-    return math.Round(gi*100) / 100
 }

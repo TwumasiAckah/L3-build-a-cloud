@@ -49,7 +49,7 @@ import { useState } from "react";
 import { Skeleton } from "../components/ui/skeleton";
 
 export default function Dashboard() {
-  const { data: databases, isLoading, isError } = useDatabases();
+  const { data: data, isLoading, isError } = useDatabases();
   const deleteDb = useDeleteDatabase();
   const [dbToDelete, setDbToDelete] = useState<string | null>(null);
 
@@ -89,11 +89,15 @@ export default function Dashboard() {
     );
   }
 
-  const activeCount =
-    databases?.filter((d) => d.status === "ready").length || 0;
-  const totalStorage = databases?.length || 0;
-  const totalInstances =
-    databases?.reduce((acc, curr) => acc + curr.instances, 0) || 0;
+  const databases = data?.databases ?? [];
+
+  const activeCount = databases.filter((d) => d.status === "ready").length;
+
+  const totalStorage = data?.total_storage_gi ?? 0;
+  const totalInstances = databases.reduce(
+    (acc, curr) => acc + curr.instances,
+    0,
+  );
 
   return (
     <Layout>
@@ -129,14 +133,14 @@ export default function Dashboard() {
           <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Total Databases
+                Total Storage
               </CardTitle>
               <HardDrive className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStorage}</div>
               <p className="text-xs text-muted-foreground">
-                {databases?.length} total provisioned
+                (GB) for {databases?.length} provisioned clusters
               </p>
             </CardContent>
           </Card>
@@ -203,7 +207,10 @@ export default function Dashboard() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              className="h-8 w-8 p-0 cursor-pointer"
+                            >
                               <span className="sr-only">Open menu</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>

@@ -38,8 +38,8 @@ export function CreateDatabaseDialog() {
     defaultValues: {
       name: "",
       instances: 1,
-      storage_size: "10Gi",
-      postgresql_version: 16,
+      storage_size: "2Gi",
+      postgresql_version: 18,
     },
   });
 
@@ -56,7 +56,7 @@ export function CreateDatabaseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold cursor-pointer">
           <Plus className="w-4 h-4 mr-2" />
           New Database
         </Button>
@@ -140,7 +140,7 @@ export function CreateDatabaseDialog() {
                     <div className="pt-2">
                       <Slider
                         min={12}
-                        max={17}
+                        max={18}
                         step={1}
                         value={[field.value]}
                         onValueChange={(vals) => field.onChange(vals[0])}

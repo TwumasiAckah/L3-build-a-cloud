@@ -117,7 +117,7 @@ function UpdateConfigDialog({
 }: {
   name: string;
   currentInstances: number;
-  currentStorageSize: number;
+  currentStorageSize: string;
 }) {
   const updateDb = useUpdateDatabase();
   const [instances, setInstances] = useState(currentInstances);
@@ -136,7 +136,7 @@ function UpdateConfigDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="cursor-pointer">
           <Settings className="w-4 h-4 mr-2" />
           Update Config
         </Button>
@@ -172,8 +172,8 @@ function UpdateConfigDialog({
             </div>
             <Input
               value={storageSize}
-              onChange={(e) => setStorageSize(Number(e.target.value))}
-              placeholder="10"
+              onChange={(e) => setStorageSize(e.target.value)}
+              placeholder="5Gi"
             />
             <p className="text-xs text-muted-foreground">
               e.g., 10Gi, 20Gi, 50Gi, 100Gi
@@ -259,7 +259,7 @@ export default function DatabaseDetails() {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="cursor-pointer">
                   <Key className="w-4 h-4 mr-2" />
                   Connect
                 </Button>
@@ -286,14 +286,16 @@ export default function DatabaseDetails() {
                       {db.storage_size}
                     </div>
                     <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-primary w-[40%]" />
+                      <div className="h-full bg-primary w-[0%]" />
                     </div>
-                    <p className="text-xs text-muted-foreground">40% used</p>
+                    <p className="text-xs text-muted-foreground">
+                      0% used per instance
+                    </p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-                      High Availability
+                      Availability
                     </div>
                     <div className="text-3xl font-bold flex items-baseline gap-1">
                       {db.instances}
@@ -334,10 +336,10 @@ export default function DatabaseDetails() {
                   <span className="text-sm text-muted-foreground">Status</span>
                   <StatusBadge status={db.status} />
                 </div>
-                <div className="flex justify-between py-2 border-b">
+                {/* <div className="flex justify-between py-2 border-b">
                   <span className="text-sm text-muted-foreground">Region</span>
                   <span className="text-sm font-medium">{db.region}</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between py-2 border-b">
                   <span className="text-sm text-muted-foreground">
                     PostgreSQL Version

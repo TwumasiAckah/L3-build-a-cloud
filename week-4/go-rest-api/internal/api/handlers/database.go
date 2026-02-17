@@ -6,6 +6,7 @@ import (
 	"strings"
 	"week-4/go-rest-api/internal/k8s"
 	"week-4/go-rest-api/internal/models"
+	"week-4/go-rest-api/internal/service"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -118,8 +119,8 @@ func (h *DatabaseHandler) ListDatabases(c *gin.Context) {
 		return
 	}
 
-	totalBytes := calculateTotalStorage(clusters)
-    totalGi := formatBytesToGi(totalBytes)
+	totalBytes := service.CalculateTotalStorage(clusters)
+    totalGi := service.FormatBytesToGi(totalBytes)
 
 	c.JSON(http.StatusOK, models.DatabaseListResponse{
 		Databases: clusters,

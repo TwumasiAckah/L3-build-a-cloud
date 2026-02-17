@@ -56,6 +56,8 @@ export type DatabaseInfo = {
 export type DatabaseListResponse = {
   databases: DatabaseInfo[];
   total: number;
+  total_storage_gi: number;
+  total_storage_bytes: number;
 };
 
 // Matches DatabaseCreateRequest in Go
