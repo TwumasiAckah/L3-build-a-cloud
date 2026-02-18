@@ -27,9 +27,7 @@ spec:
               name: http
           env:
             - name: NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: "postgres-clusters"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -73,9 +71,9 @@ metadata:
   name: postgres-api
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
-  name: postgres-api
+  name: postgres-api-global
 rules:
   - apiGroups: ["postgresql.cnpg.io"]
     resources: ["clusters"]
@@ -85,16 +83,17 @@ rules:
     verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
-  name: postgres-api
+  name: postgres-api-global-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: postgres-api
+  kind: ClusterRole
+  name: postgres-api-global
 subjects:
   - kind: ServiceAccount
     name: postgres-api
+    namespace: postgres-api
 
 ---
 # UI DEPLOYMENT
