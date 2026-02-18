@@ -2,7 +2,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: db-test
-  namespace: default
+  namespace: postgres-clusters
 spec:
   instances: 1
   storage:
