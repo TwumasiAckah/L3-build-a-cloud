@@ -1,5 +1,4 @@
-# API Deployment
-
+# API DEPLOYMENT
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +20,7 @@ spec:
         - name: stackit-registry-secret
       containers:
         - name: api
-          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:199e4a5ac663172751ef43afc252d97a3f2fd5aa
+          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -83,13 +82,11 @@ subjects:
     name: postgres-api
 
 ---
-# UI deployment
-
+# UI DEPLOYMENT
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-ui
-  namespace: postgres-api
 spec:
   replicas: 2
   selector:
@@ -100,18 +97,20 @@ spec:
       labels:
         app: postgres-ui
     spec:
+      imagePullSecrets:
+        - name: stackit-registry-secret
       containers:
         - name: ui
-          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:199e4a5ac663172751ef43afc252d97a3f2fd5aa
+          image: registry.onstackit.cloud/l3-cloud-psql/postgres-ui:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
 ---
+# UI SERVICE
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres-ui
-  namespace: postgres-api
 spec:
   selector:
     app: postgres-ui
