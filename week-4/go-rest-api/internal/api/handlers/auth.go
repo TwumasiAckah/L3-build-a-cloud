@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"os"
 	"week-4/go-rest-api/internal/auth"
 
 	"github.com/gin-gonic/gin"
@@ -28,8 +29,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Hardcoded user
-	if req.Username != "admin" || req.Password != "admin" {
+	expectedUser := os.Getenv("ADMIN_USERNAME")
+    expectedPass := os.Getenv("ADMIN_PASSWORD")
+
+	if req.Username != expectedUser || req.Password != expectedPass {
 		c.JSON(401, gin.H{"error": "invalid credentials"})
 		return
 	}

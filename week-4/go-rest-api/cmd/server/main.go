@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-	// Get namespace from the environment or use default
 	namespace := getenv("NAMESPACE", "postgres-clusters")
 	port := getenv("PORT", "8000")
 
