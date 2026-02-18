@@ -1,4 +1,3 @@
-// use-databases.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   DatabaseInfo,
@@ -10,7 +9,7 @@ import type {
 import { useAuthHeaders } from "./auth-hooks/use-auth-headers";
 import { useToast } from "./use-toast";
 
-// --- LIST DATABASES ---
+// LIST DATABASES
 export function useDatabases() {
   const headers = useAuthHeaders();
 
@@ -26,7 +25,7 @@ export function useDatabases() {
   });
 }
 
-// --- GET SINGLE DATABASE ---
+// GET SINGLE DATABASE
 export function useDatabase(name: string) {
   const headers = useAuthHeaders();
 
@@ -42,7 +41,7 @@ export function useDatabase(name: string) {
   });
 }
 
-// --- GET DATABASE CREDENTIALS ---
+// GET DATABASE CREDENTIALS
 export function useDatabaseCredentials(name: string) {
   const headers = useAuthHeaders();
 
@@ -59,7 +58,7 @@ export function useDatabaseCredentials(name: string) {
   });
 }
 
-// --- CREATE DATABASE ---
+// CREATE DATABASE
 export function useCreateDatabase() {
   const queryClient = useQueryClient();
   const headers = useAuthHeaders();
@@ -97,7 +96,7 @@ export function useCreateDatabase() {
   });
 }
 
-// --- UPDATE DATABASE ---
+// UPDATE DATABASE
 export function useUpdateDatabase() {
   const queryClient = useQueryClient();
   const headers = useAuthHeaders();
@@ -134,7 +133,7 @@ export function useUpdateDatabase() {
   });
 }
 
-// --- DELETE DATABASE ---
+// DELETE DATABASE
 export function useDeleteDatabase() {
   const queryClient = useQueryClient();
   const headers = useAuthHeaders();

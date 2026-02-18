@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// === ZOD SCHEMAS FOR VALIDATION ===
+// ZOD SCHEMAS FOR VALIDATION
 
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -24,7 +24,7 @@ export const updateDatabaseSchema = z.object({
   storage_size: z.string().optional(),
 });
 
-// === TYPE DEFINITIONS (matching Go models) ===
+// TYPE DEFINITIONS
 
 export type DatabaseStatus =
   | "ready"

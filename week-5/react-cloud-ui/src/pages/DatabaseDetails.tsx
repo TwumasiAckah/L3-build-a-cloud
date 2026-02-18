@@ -34,7 +34,6 @@ function CredentialsDialog({ name }: { name: string }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Fetch when dialog opens (handled by parent opening logic ideally, but refetch works)
     refetch();
   }, [name, refetch]);
 

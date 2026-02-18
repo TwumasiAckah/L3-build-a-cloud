@@ -5,9 +5,7 @@ import {
   updateDatabaseSchema,
 } from "./schema";
 
-// ============================================
 // SHARED ERROR SCHEMAS
-// ============================================
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),
@@ -21,9 +19,7 @@ export const errorSchemas = {
   }),
 };
 
-// ============================================
-// API CONTRACT
-// ============================================
+// API ROUTES
 export const api = {
   auth: {
     login: {
@@ -192,9 +188,7 @@ export const api = {
   },
 };
 
-// ============================================
 // HELPERS
-// ============================================
 export function buildUrl(
   path: string,
   params?: Record<string, string | number>,
