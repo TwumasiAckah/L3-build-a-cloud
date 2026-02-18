@@ -23,7 +23,7 @@ export default function NotFound() {
 
           <div className="mt-8 flex justify-end">
             <Link href="/dashboard">
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
                 Return to Dashboard
               </Button>
             </Link>
