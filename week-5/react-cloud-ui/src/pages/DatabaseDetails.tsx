@@ -154,6 +154,7 @@ function UpdateConfigDialog({
               <span className="text-sm text-muted-foreground">{instances}</span>
             </div>
             <Slider
+              aria-label="Instances"
               min={1}
               max={5}
               step={1}
