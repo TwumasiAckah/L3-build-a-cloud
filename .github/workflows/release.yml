@@ -41,6 +41,9 @@ jobs:
   playwright-tests:
     name: Playwright E2E
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: week-5/e2e-tests
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
