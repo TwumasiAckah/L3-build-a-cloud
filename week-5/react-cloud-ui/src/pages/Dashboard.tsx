@@ -282,7 +282,7 @@ export default function Dashboard() {
                 setDbToDelete(null);
               }}
             >
-              Delete Database
+              Confirm Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

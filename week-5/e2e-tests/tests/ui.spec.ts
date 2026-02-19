@@ -12,7 +12,7 @@ test("User can log in and see the dashboard", async ({ page }) => {
   }
 
   // Go to URL
-  await page.goto("https://cloudstack.stackit.rocks");
+  await page.goto("https://cloudstack.stackit.rocks/");
 
   // Log in
   await page.getByRole("textbox", { name: "Username" }).fill(username);
@@ -48,17 +48,29 @@ test("User can log in and see the dashboard", async ({ page }) => {
 
   // update the database configuration
   await page.getByRole("button", { name: "Update Config" }).click();
-  const scaleSlider = page.getByRole("slider", { name: /instances|nodes/i });
-  await scaleSlider.press("ArrowRight");
-  await page.getByRole("button", { name: "Apply Changes" }).click();
-  await expect(page.getByText(/update successful/i)).toBeVisible({
-    timeout: 10000,
-  });
 
-  // Delete the database
-  await page.getByRole("button", { name: /delete|remove/i }).click();
+  //   Handle the slider in the update config dialog
+  const dialog = page.getByRole("dialog", { name: "Scale Resources" });
+  const scaleSlider = dialog.getByLabel("Instances");
+  await scaleSlider.focus();
+  await scaleSlider.press("ArrowRight");
+
+  //   Apply the changes and verify the dialog closes
+  await dialog.getByRole("button", { name: "Apply Changes" }).click();
+  await expect(dialog).not.toBeVisible();
+
+  // Go back to the dashboard
+  await page.getByRole("link", { name: "Dashboard" }).click();
+  await expect(page).toHaveURL(/.*dashboard/);
+  const databaseRow = page.getByRole("row").filter({ hasText: "e2e-test-db" });
+
+  //  Open the menu and delete the database
+  await databaseRow.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("menuitem", { name: "Delete Database" }).click();
+
+  //   Confirm the delete action in the alert dialog
   await page.getByRole("button", { name: "Confirm Delete" }).click();
 
-  // Verify it's gone
+  //   Verify the database is deleted and no longer visible in the list
   await expect(page.getByText("e2e-test-db")).not.toBeVisible();
 });
