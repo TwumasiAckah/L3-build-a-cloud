@@ -1,31 +1,75 @@
-name: Release
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
+  pull-requests: read
+
+env:
+  REGISTRY: registry.onstackit.cloud
+  API_IMAGE: registry.onstackit.cloud/l3-cloud-psql/postgres-api
+  UI_IMAGE: registry.onstackit.cloud/l3-cloud-psql/postgres-ui
 
 jobs:
-  release:
+  # TESTING
+  go-tests:
+    name: Go Tests
     runs-on: ubuntu-latest
-
-    env:
-      REGISTRY: registry.onstackit.cloud
-      API_IMAGE: registry.onstackit.cloud/l3-cloud-psql/postgres-api
-      UI_IMAGE: registry.onstackit.cloud/l3-cloud-psql/postgres-ui
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          fetch-depth: 0
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: week-4/go-rest-api/go.sum
+      - name: Run Tests
+        working-directory: week-4/go-rest-api
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          go mod download
+          go test -v -race ./...
+  playwright-tests:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install & Run
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          npm ci
+          npx playwright install --with-deps
+          npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
+  # BUILD & PUSH
+  release:
+    name: Build and Push
+    needs: [go-tests, playwright-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
       - name: Login to registry
         uses: docker/login-action@v3
         with:
@@ -51,15 +95,25 @@ jobs:
             ${{ env.UI_IMAGE }}:${{ github.sha }}
             ${{ env.UI_IMAGE }}:latest
 
-      - name: Update image tags in deployment
+  # GITOPS UPDATE
+  deploy:
+    name: Update Manifests
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update image tags
         run: |
           sed -i "s|image: ${{ env.API_IMAGE }}.*|image: ${{ env.API_IMAGE }}:${{ github.sha }}|g" week-4/go-rest-api/deploy/deployment.yaml
           sed -i "s|image: ${{ env.UI_IMAGE }}.*|image: ${{ env.UI_IMAGE }}:${{ github.sha }}|g" week-4/go-rest-api/deploy/deployment.yaml
 
-      - name: Commit and push changes
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add week-4/go-rest-api/deploy/deployment.yaml
-          git commit -m "deploy: update api and ui images to ${{ github.sha }}"
+          git commit -m "deploy: update images to ${{ github.sha }} [skip ci]"
           git push origin main
