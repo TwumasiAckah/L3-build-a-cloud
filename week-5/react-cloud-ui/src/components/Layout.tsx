@@ -9,7 +9,8 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/audit", label: "Audit Logs", icon: FileText },
+    { href: "/audit-logs", label: "Audit Logs", icon: FileText },
+    { href: "/service-logs", label: "Service Logs", icon: FileText },
   ];
 
   return (
