@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Postgres API", () => {
-  const baseURL = "https://cloudstack.stackit.rocks/api";
+  const baseURL = "https://poststack.stackit.rocks/api";
 
   test("Login returns a valid JWT", async ({ request }) => {
     const response = await request.post(`${baseURL}/login`, {

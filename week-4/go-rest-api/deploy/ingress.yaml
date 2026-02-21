@@ -11,10 +11,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - cloudstack.stackit.rocks
+        - poststack.stackit.rocks
       secretName: postgres-api-tls
   rules:
-    - host: cloudstack.stackit.rocks
+    - host: poststack.stackit.rocks
       http:
         paths:
           - path: /api
