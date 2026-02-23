@@ -1,0 +1,23 @@
+config:
+  snippets:
+    pipelineStages:
+      - json:
+          expressions:
+            log_type: log_type
+            user: user
+            database_name: postgres-logs
+            action: action
+      - labels:
+          log_type:
+          user:
+          database_name:
+          action:
+    extraScrapeConfigs: |
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"week-4/go-rest-api/internal/k8s"
+	"week-4/go-rest-api/internal/logging"
 	"week-4/go-rest-api/internal/models"
-	"week-4/go-rest-api/internal/service"
+	"week-4/go-rest-api/internal/services"
 
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -67,6 +69,19 @@ func (h *DatabaseHandler) CreateDatabase(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "Failed to create database", err)
 		return
 	}
+
+	// Log the event
+    logging.ServiceLog(
+        req.Name,
+        "INFO",
+        "DATABASE_CREATE",
+        fmt.Sprintf("Database %s created successfully", req.Name),
+        map[string]interface{}{
+            "instances":    req.Instances,
+            "storage_size": req.StorageSize,
+        },
+    )
+
 	c.JSON(http.StatusCreated, info)
 }
 
@@ -119,8 +134,8 @@ func (h *DatabaseHandler) ListDatabases(c *gin.Context) {
 		return
 	}
 
-	totalBytes := service.CalculateTotalStorage(clusters)
-    totalGi := service.FormatBytesToGi(totalBytes)
+	totalBytes := services.CalculateTotalStorage(clusters)
+    totalGi := services.FormatBytesToGi(totalBytes)
 
 	c.JSON(http.StatusOK, models.DatabaseListResponse{
 		Databases: clusters,
@@ -248,6 +263,22 @@ func (h *DatabaseHandler) UpdateDatabase(c *gin.Context) {
 		respondError(c, http.StatusInternalServerError, "Failed to update database", err)
 		return
 	}
+
+	oldInstances := req.Instances
+	newInstances := updates["instances"]
+
+    if newInstances != oldInstances {
+        logging.ServiceLog(
+            name,
+            "INFO",
+            "SCALING",
+            fmt.Sprintf("Database scaled from %d to %d instances", oldInstances, newInstances),
+            map[string]interface{}{
+                "old_instances": oldInstances,
+                "new_instances": newInstances,
+            },
+        )
+    }
 
 	c.JSON(http.StatusOK, updated)
 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 	"week-4/go-rest-api/internal/models"
-	"week-4/go-rest-api/internal/service"
+	"week-4/go-rest-api/internal/services"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -250,7 +250,7 @@ func (c *Client) UpdateCluster(ctx context.Context, name string, updates map[str
 			currentSize, _, _ := unstructured.NestedString(spec, "storage", "size")
 
 			// Prevent decreasing storage
-			if currentSize != "" && service.ParseStorageSize(size) < service.ParseStorageSize(currentSize) {
+			if currentSize != "" && services.ParseStorageSize(size) < services.ParseStorageSize(currentSize) {
 				return nil, fmt.Errorf("cannot decrease storage from %s to %s", currentSize, size)
 			}
 
