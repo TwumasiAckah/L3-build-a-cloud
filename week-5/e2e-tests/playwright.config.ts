@@ -76,6 +76,19 @@ export default defineConfig({
     // },
   ],
 
+  // webServer: [
+  //   {
+  //     command: "cd ../week-4/go-rest-api && go run main.go",
+  //     port: 8080,
+  //     reuseExistingServer: !process.env.CI,
+  //   },
+  //   {
+  //     command: "cd ../week-5/react-cloud-ui && npm run dev",
+  //     port: 3000,
+  //     reuseExistingServer: !process.env.CI,
+  //   },
+  // ],
+
   /* Run your local dev server before starting the tests */
   // webServer: {
   //   command: 'npm run start',

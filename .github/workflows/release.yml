@@ -51,6 +51,7 @@ jobs:
           node-version: lts/*
       - name: Install & Run
         env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
