@@ -46,6 +46,7 @@ export default defineConfig({
       port: 8080,
       reuseExistingServer: !process.env.CI,
       env: {
+        PORT: "8080",
         SKIP_K8S_INIT: "true",
         JWT_SECRET: process.env.JWT_SECRET || "local_dev_secret",
       },
@@ -55,6 +56,10 @@ export default defineConfig({
       cwd: "../react-cloud-ui",
       port: 3000,
       reuseExistingServer: !process.env.CI,
+      env: {
+        PORT: "3000",
+        VITE_API_URL: "http://localhost:8080",
+      },
     },
   ],
 
