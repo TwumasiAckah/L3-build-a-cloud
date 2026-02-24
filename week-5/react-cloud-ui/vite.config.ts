@@ -9,9 +9,9 @@ export default defineConfig({
     proxy: {
       // Proxy any request starting with /api to your backend
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://127.0.0.1:8080",
         changeOrigin: true,
-        secure: true,
+        secure: false,
       },
     },
   },

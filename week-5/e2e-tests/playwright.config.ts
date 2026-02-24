@@ -33,7 +33,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://127.0.0.1:3000",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -46,6 +46,7 @@ export default defineConfig({
       port: 8080,
       reuseExistingServer: !process.env.CI,
       env: {
+        HOST: "127.0.0.1",
         PORT: "8080",
         SKIP_K8S_INIT: "true",
         JWT_SECRET: process.env.JWT_SECRET || "local_dev_secret",
@@ -54,7 +55,7 @@ export default defineConfig({
     {
       command: "npm run dev -- --host",
       cwd: "../react-cloud-ui",
-      url: "http://localhost:3000",
+      url: "http://127.0.0.1:3000",
       reuseExistingServer: !process.env.CI,
       stdout: "pipe",
       stderr: "pipe",
