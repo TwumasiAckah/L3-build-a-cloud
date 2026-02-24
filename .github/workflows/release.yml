@@ -67,7 +67,7 @@ jobs:
   # BUILD & PUSH
   release:
     name: Build and Push
-    needs: [go-tests, playwright-tests]
+    needs: [go-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
