@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"week-4/go-rest-api/internal/logging"
 	"week-4/go-rest-api/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -134,6 +135,8 @@ func TestCreateDatabase(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			router := setupTestRouter(tt.mock)
+
+			logging.InitLogger()
 
 			resp := performRequest(router, "POST", "/databases", models.DatabaseCreateRequest{
 				Name:            "db",

@@ -52,7 +52,7 @@ type ErrorResponse struct {
 }
 
 type DatabaseUpdateRequest struct {
-	Name        string `json:"name" binding:"required,min=1,max=253"`
+	Name        string `json:"name"`
 	Instances   *int    `json:"instances,omitempty"`
 	StorageSize *string `json:"storage_size,omitempty"`
 }
