@@ -44,6 +44,9 @@ type Client struct {
 func NewClient(namespace string) (*Client, error) {
 	config, err := getConfig()
 	if err != nil {
+		if os.Getenv("SKIP_K8S_INIT") == "true" {
+        	log.Println("Skipping K8s init for testing mode...")
+		}
 		return nil, fmt.Errorf("failed to get kubernetes config: %w", err)
 	}
 

@@ -46,6 +46,7 @@ export default defineConfig({
       port: 8080,
       reuseExistingServer: !process.env.CI,
       env: {
+        SKIP_K8S_INIT: "true",
         JWT_SECRET: process.env.JWT_SECRET || "local_dev_secret",
       },
     },
