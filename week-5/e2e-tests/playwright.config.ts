@@ -18,7 +18,6 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 120000,
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -33,38 +32,11 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://127.0.0.1:3000",
+    // baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
   },
-
-  webServer: [
-    {
-      command: "go run ./cmd/server",
-      cwd: "../../week-4/go-rest-api",
-      port: 8080,
-      reuseExistingServer: !process.env.CI,
-      env: {
-        HOST: "127.0.0.1",
-        PORT: "8080",
-        SKIP_K8S_INIT: "true",
-        JWT_SECRET: process.env.JWT_SECRET || "local_dev_secret",
-      },
-    },
-    {
-      command: "npm run dev -- --host",
-      cwd: "../react-cloud-ui",
-      url: "http://127.0.0.1:3000",
-      reuseExistingServer: !process.env.CI,
-      stdout: "pipe",
-      stderr: "pipe",
-      env: {
-        PORT: "3000",
-        VITE_API_URL: "http://localhost:8080",
-      },
-    },
-  ],
 
   /* Configure projects for major browsers */
   projects: [
@@ -103,4 +75,11 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
+
+  /* Run your local dev server before starting the tests */
+  // webServer: {
+  //   command: 'npm run start',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: !process.env.CI,
+  // },
 });
