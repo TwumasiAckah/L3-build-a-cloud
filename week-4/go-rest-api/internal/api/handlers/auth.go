@@ -32,6 +32,9 @@ func Login(c *gin.Context) {
 	expectedUser := os.Getenv("ADMIN_USERNAME")
     expectedPass := os.Getenv("ADMIN_PASSWORD")
 
+	// expectedUser := "admin"
+    // expectedPass := "admin"
+
 	if req.Username != expectedUser || req.Password != expectedPass {
 		c.JSON(401, gin.H{"error": "invalid credentials"})
 		return
