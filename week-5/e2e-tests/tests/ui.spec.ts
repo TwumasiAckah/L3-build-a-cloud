@@ -12,7 +12,7 @@ test("User can log in and see the dashboard", async ({ page }) => {
   }
 
   // Go to URL
-  await page.goto("https://poststack.stackit.rocks/");
+  await page.goto("/");
 
   // Log in
   await page.getByRole("textbox", { name: "Username" }).fill(username);
