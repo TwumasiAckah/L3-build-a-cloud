@@ -46,6 +46,8 @@ func NewClient(namespace string) (*Client, error) {
 	if err != nil {
 		if os.Getenv("SKIP_K8S_INIT") == "true" {
         	log.Println("Skipping K8s init for testing mode...")
+		}else {
+        log.Fatalf("k8s client init failed: %v", err)
 		}
 		return nil, fmt.Errorf("failed to get kubernetes config: %w", err)
 	}

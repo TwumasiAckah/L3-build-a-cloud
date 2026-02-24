@@ -78,6 +78,29 @@ jobs:
           # 3. Install Playwright Browsers
           npx playwright install --with-deps
 
+      - name: Create Dummy Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          cat <<EOF > $HOME/.kube/config
+          apiVersion: v1
+          clusters:
+          - cluster:
+              server: https://localhost:8443
+            name: dummy-cluster
+          contexts:
+          - context:
+              cluster: dummy-cluster
+              user: dummy-user
+            name: dummy-context
+          current-context: dummy-context
+          kind: Config
+          preferences: {}
+          users:
+          - name: dummy-user
+            user:
+              token: dummy-token
+          EOF
+
       - name: Run Playwright tests
         env:
           PORT: 3000
