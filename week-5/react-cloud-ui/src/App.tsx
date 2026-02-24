@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DatabaseDetails from "./pages/DatabaseDetails";
 import NotFound from "./pages/not-found";
+import AuditLogs from "./pages/AuditLogs";
 
 // Protected Route Wrapper
 function ProtectedRoute({
@@ -46,6 +47,10 @@ function Router() {
 
       <Route path="/databases/:name">
         <ProtectedRoute component={DatabaseDetails} />
+      </Route>
+
+      <Route path="/audit-logs">
+        <ProtectedRoute component={AuditLogs} />
       </Route>
 
       <Route path="/">

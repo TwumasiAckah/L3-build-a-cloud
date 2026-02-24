@@ -42,7 +42,7 @@ func (h *LogsHandler) GetServiceLogs(c *gin.Context) {
 
 	// Add level filter if provided
 	if level != "" {
-		query = fmt.Sprintf(`{log_type="service", database_name="%s", level="%s"}`, dbName, level)
+		query = fmt.Sprintf(`{log_type="service", database_name="%s"} | json | level=~"(?i)%s"`, dbName, level)
 	}
 
 	logs, err := h.queryLoki(query, limit)
@@ -90,7 +90,7 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
 	params := url.Values{}
 	params.Add("query", query)
 	params.Add("limit", limit)
-	params.Add("start", fmt.Sprintf("%d", time.Now().Add(-24*time.Hour).UnixNano())) // FIX: Use UnixNano
+	params.Add("start", fmt.Sprintf("%d", time.Now().Add(-24*time.Hour).UnixNano()))
 	params.Add("direction", "backward")
 
 	lokiURL := fmt.Sprintf("%s/loki/api/v1/query_range?%s", h.lokiURL, params.Encode())
@@ -114,7 +114,7 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
 			ResultType string `json:"resultType"`
 			Result     []struct {
 				Stream map[string]string `json:"stream"`
-				Values [][]string        `json:"values"` // [timestamp_ns, log_line]
+				Values [][]string        `json:"values"`
 			} `json:"result"`
 		} `json:"data"`
 	}
@@ -143,9 +143,9 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
 
 			// Convert to LogEntry
 			entry := LogEntry{
-				Timestamp: timestampNs, // Or format it: formatTimestamp(timestampNs)
+				Timestamp: formatTimestamp(timestampNs),
 				LogType:   getString(logData, "log_type"),
-				Message:   getString(logData, "msg"), // zap uses "msg" not "message"
+				Message:   getString(logData, "msg"),
 				Level:     getString(logData, "level"),
 				User:      getString(logData, "user"),
 				Action:    getString(logData, "action"),
@@ -181,7 +181,6 @@ func joinFilters(filters []string) string {
 	return result
 }
 
-// Optional: Format timestamp for better readability
 func formatTimestamp(timestampNs string) string {
 	// Parse nanoseconds timestamp
 	ns, err := strconv.ParseInt(timestampNs, 10, 64)
