@@ -145,7 +145,7 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
 			entry := LogEntry{
 				Timestamp: formatTimestamp(timestampNs),
 				LogType:   getString(logData, "log_type"),
-				Message:   getString(logData, "msg"),
+				Message:   getString(logData, "message"),
 				Level:     getString(logData, "level"),
 				User:      getString(logData, "user"),
 				Action:    getString(logData, "action"),

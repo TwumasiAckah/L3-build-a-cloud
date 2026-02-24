@@ -17,6 +17,18 @@ spec:
             size: 20Gi
         promtail:
           enabled: true
+          config:
+            snippets:
+              pipelineStages:
+                - json:
+                    expressions:
+                      log_type: log_type
+                      user: user
+                      action: action
+                - labels:
+                    log_type:
+                    user:
+                    action:
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
