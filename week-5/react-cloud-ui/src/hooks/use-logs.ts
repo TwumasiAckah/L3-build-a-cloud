@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, buildUrl } from "../shared/routes";
 import { useAuthHeaders } from "./auth-hooks/use-auth-headers";
+import type { ServiceLog, AuditLog } from "../shared/schema";
 
 export function useServiceLogs(name: string) {
   const headers = useAuthHeaders();
   const url = buildUrl(api.logs.service.path, { name });
 
-  return useQuery({
+  return useQuery<ServiceLog[]>({
     queryKey: [api.logs.service.path, name],
     queryFn: async () => {
       const res = await fetch(url, { headers });
@@ -14,14 +15,14 @@ export function useServiceLogs(name: string) {
       return api.logs.service.responses[200].parse(await res.json());
     },
     enabled: !!headers.Authorization && !!name,
-    refetchInterval: 5000, // Auto refresh logs every 5s
+    refetchInterval: 5000,
   });
 }
 
 export function useAuditLogs() {
   const headers = useAuthHeaders();
 
-  return useQuery({
+  return useQuery<AuditLog[]>({
     queryKey: [api.logs.audit.path],
     queryFn: async () => {
       const res = await fetch(api.logs.audit.path, { headers });

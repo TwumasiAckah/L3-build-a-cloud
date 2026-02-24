@@ -28,9 +28,9 @@ export default function AuditLogs() {
 
   const filteredLogs = logs?.filter(
     (log) =>
-      log.resource.toLowerCase().includes(search.toLowerCase()) ||
-      log.username.toLowerCase().includes(search.toLowerCase()) ||
-      log.action.toLowerCase().includes(search.toLowerCase()),
+      log.resource_name?.toLowerCase().includes(search.toLowerCase()) ||
+      log.username?.toLowerCase().includes(search.toLowerCase()) ||
+      log.action?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -98,9 +98,9 @@ export default function AuditLogs() {
                   </TableHeader>
                   <TableBody>
                     {filteredLogs && filteredLogs.length > 0 ? (
-                      filteredLogs.map((log) => (
+                      filteredLogs.map((log, idx) => (
                         <TableRow
-                          key={log.id}
+                          key={`${log.timestamp}-${idx}`}
                           className="group border-border hover:bg-secondary/30"
                         >
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
@@ -137,10 +137,14 @@ export default function AuditLogs() {
                             </Badge>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource}
+                            {log.resource_name}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                            {log.details || "-"}
+                            {log.details
+                              ? typeof log.details === "string"
+                                ? log.details
+                                : JSON.stringify(log.details)
+                              : "-"}
                           </TableCell>
                         </TableRow>
                       ))

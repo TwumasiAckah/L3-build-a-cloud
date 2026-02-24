@@ -40,7 +40,6 @@ export type LoginResponse = {
   user: { id: number; username: string };
 };
 
-// Matches DatabaseInfo in Go
 export type DatabaseInfo = {
   name: string;
   status: DatabaseStatus;
@@ -52,7 +51,6 @@ export type DatabaseInfo = {
   region: string;
 };
 
-// Matches DatabaseListResponse in Go
 export type DatabaseListResponse = {
   databases: DatabaseInfo[];
   total: number;
@@ -60,13 +58,10 @@ export type DatabaseListResponse = {
   total_storage_bytes: number;
 };
 
-// Matches DatabaseCreateRequest in Go
 export type CreateDatabaseRequest = z.infer<typeof createDatabaseSchema>;
 
-// Matches DatabaseUpdateRequest in Go
 export type UpdateDatabaseRequest = z.infer<typeof updateDatabaseSchema>;
 
-// Matches DatabaseCredentials in Go
 export type DatabaseCredentials = {
   username: string;
   password: string;
@@ -76,7 +71,6 @@ export type DatabaseCredentials = {
   connection_string: string;
 };
 
-// Matches ErrorResponse in Go
 export type ErrorResponse = {
   error: string;
   detail?: string;
@@ -86,14 +80,22 @@ export type ServiceLog = {
   timestamp: string;
   level: "INFO" | "WARN" | "ERROR";
   message: string;
+  log_type?: string;
+  database_name?: string;
+  event_type?: string;
+  details?: Record<string, unknown>;
 };
 
 export type AuditLog = {
-  id: number;
-  userId?: number;
-  username: string;
-  action: "CREATE" | "UPDATE" | "DELETE" | "LOGIN";
-  resource: string;
-  details?: string;
   timestamp: string;
+  username: string;
+  action: string;
+  resource_type?: string;
+  resource_name: string;
+  user?: string;
+  ip?: string;
+  success?: boolean;
+  level?: string;
+  log_type?: string;
+  details?: Record<string, unknown>;
 };

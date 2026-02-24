@@ -170,17 +170,21 @@ export const api = {
     },
     audit: {
       method: "GET" as const,
-      path: "/api/audit" as const,
+      path: "/api/audit-logs" as const,
       responses: {
         200: z.array(
           z.object({
-            id: z.number(),
-            userId: z.number().optional(),
+            timestamp: z.string(),
             username: z.string(),
             action: z.string(),
-            resource: z.string(),
-            details: z.string().optional(),
-            timestamp: z.string(),
+            resource_type: z.string().optional(),
+            resource_name: z.string(),
+            user: z.string().optional(),
+            ip: z.string().optional(),
+            success: z.boolean().optional(),
+            level: z.string().optional(),
+            log_type: z.string().optional(),
+            details: z.record(z.string(), z.unknown()),
           }),
         ),
       },

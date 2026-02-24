@@ -1,4 +1,5 @@
 import { useParams, Link } from "wouter";
+import { useServiceLogs } from "../hooks/use-logs";
 import {
   useDatabase,
   useDatabaseCredentials,
@@ -16,6 +17,7 @@ import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { Slider } from "../components/ui/slider";
 import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -197,6 +199,7 @@ function UpdateConfigDialog({
 export default function DatabaseDetails() {
   const { name } = useParams<{ name: string }>();
   const { data: db, isLoading, isError } = useDatabase(name!);
+  const { data: logs, isLoading: logsLoading } = useServiceLogs(name!);
 
   if (isLoading) {
     return (
@@ -321,6 +324,84 @@ export default function DatabaseDetails() {
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg text-foreground">
+                    Service Logs
+                  </CardTitle>
+                  <Badge variant="outline" className="text-xs">
+                    Last 24h
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {logsLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : logs && logs.length > 0 ? (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {logs.map((log, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "p-3 rounded-lg border text-sm",
+                          log.level === "ERROR"
+                            ? "bg-destructive/10 border-destructive/20"
+                            : log.level === "WARN"
+                              ? "bg-yellow-500/10 border-yellow-500/20"
+                              : "bg-muted/50 border-border",
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge
+                                variant={
+                                  log.level === "ERROR"
+                                    ? "destructive"
+                                    : log.level === "WARN"
+                                      ? "default"
+                                      : "outline"
+                                }
+                                className="text-[10px]"
+                              >
+                                {log.level}
+                              </Badge>
+                              {log.event_type && (
+                                <span className="text-xs text-muted-foreground font-mono">
+                                  {log.event_type}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-foreground">
+                              {log.message}
+                            </p>
+                            {log.details &&
+                              Object.keys(log.details).length > 0 && (
+                                <pre className="mt-2 text-xs text-muted-foreground font-mono bg-background/50 p-2 rounded overflow-x-auto">
+                                  {JSON.stringify(log.details, null, 2)}
+                                </pre>
+                              )}
+                          </div>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {format(new Date(log.timestamp), "HH:mm:ss")}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No logs available
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
