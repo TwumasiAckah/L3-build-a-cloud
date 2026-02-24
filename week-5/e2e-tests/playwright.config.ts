@@ -41,7 +41,7 @@ export default defineConfig({
 
   webServer: [
     {
-      command: "go run main.go",
+      command: "go run ./cmd/server",
       cwd: "../../week-4/go-rest-api",
       port: 8080,
       reuseExistingServer: !process.env.CI,
