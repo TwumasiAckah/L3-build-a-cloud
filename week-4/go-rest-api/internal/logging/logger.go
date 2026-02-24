@@ -1,6 +1,9 @@
 package logging
 
 import (
+	"time"
+
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -20,7 +23,7 @@ func InitLogger() {
 // Audit log helper
 func AuditLog(user, action, resourceType, resourceName, ip string, success bool, details map[string]interface{}) {
 	Logger.Info("Audit event",
-		zap.String("log_type", "audit"),
+		zap.String("log_type", "audit_action"),
 		zap.String("user", user),
 		zap.String("action", action),
 		zap.String("resource_type", resourceType),
@@ -40,4 +43,24 @@ func ServiceLog(dbName, level, eventType, message string, details map[string]int
 		zap.String("event_type", eventType),
 		zap.Any("details", details),
 	)
+}
+
+func GinLogger() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        start := time.Now()
+        path := c.Request.URL.Path
+
+        c.Next()
+
+        // This ensures EVERY request becomes an "audit" log type for Loki
+        Logger.Info("Request handled",
+            zap.String("log_type", "audit"),
+            zap.Int("status", c.Writer.Status()),
+            zap.String("method", c.Request.Method),
+            zap.String("path", path),
+            zap.String("ip", c.ClientIP()),
+            zap.String("user", c.GetString("user")),
+            zap.Duration("latency", time.Since(start)),
+        )
+    }
 }

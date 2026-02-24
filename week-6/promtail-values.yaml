@@ -5,7 +5,7 @@ config:
           expressions:
             log_type: log_type
             user: user
-            database_name: postgres-logs
+            database_name: database_name
             action: action
       - labels:
           log_type:

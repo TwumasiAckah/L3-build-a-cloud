@@ -1,6 +1,7 @@
 package api
 
 import (
+	"os"
 	"week-4/go-rest-api/internal/api/handlers"
 	"week-4/go-rest-api/internal/k8s"
 	"week-4/go-rest-api/internal/logging"
@@ -24,9 +25,10 @@ import (
 func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 
 	logging.InitLogger()
-    defer logging.Logger.Sync()
 
-	router := gin.Default()
+	router := gin.New()
+
+	router.Use(logging.GinLogger(), gin.Recovery())
 
 	router.Use(cors.Default())
 
@@ -34,7 +36,11 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
     router.Use(middleware.AuditMiddleware())
 
     // Initialize audit logger
-	logsHandler := handlers.NewLogsHandler("http://loki:3100")
+	lokiURL := os.Getenv("LOKI_URL")
+		if lokiURL == "" {
+			lokiURL = "http://loki.monitoring.svc.cluster.local:3100"
+		}
+		logsHandler := handlers.NewLogsHandler(lokiURL)
 
 
 	// Public routes
