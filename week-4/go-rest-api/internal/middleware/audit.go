@@ -1,4 +1,3 @@
-// middleware/audit.go
 package middleware
 
 import (

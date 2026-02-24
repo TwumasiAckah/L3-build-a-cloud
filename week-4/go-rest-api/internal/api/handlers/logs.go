@@ -54,7 +54,7 @@ func (h *LogsHandler) GetServiceLogs(c *gin.Context) {
 	c.JSON(http.StatusOK, logs)
 }
 
-// GET /api/audit
+// GET /api/audit-logs
 func (h *LogsHandler) GetAuditLogs(c *gin.Context) {
 	limit := c.DefaultQuery("limit", "100")
 	user := c.Query("user")

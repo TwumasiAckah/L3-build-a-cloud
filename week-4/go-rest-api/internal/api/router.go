@@ -56,7 +56,7 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 		api.PATCH("/databases/:name", dbHandler.UpdateDatabase)
 
 		api.GET("/logs/:name", logsHandler.GetServiceLogs)
-        api.GET("/audit", logsHandler.GetAuditLogs)
+        api.GET("/audit-logs", logsHandler.GetAuditLogs)
 	}
 
 	return router
