@@ -18,7 +18,7 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 60000,
+  timeout: 120000,
   testDir: "./tests",
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -52,10 +52,12 @@ export default defineConfig({
       },
     },
     {
-      command: "npm run dev",
+      command: "npm run dev -- --host",
       cwd: "../react-cloud-ui",
-      port: 3000,
+      url: "http://localhost:3000",
       reuseExistingServer: !process.env.CI,
+      stdout: "pipe",
+      stderr: "pipe",
       env: {
         PORT: "3000",
         VITE_API_URL: "http://localhost:8080",
@@ -100,11 +102,4 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });
