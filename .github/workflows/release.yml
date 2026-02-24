@@ -38,31 +38,62 @@ jobs:
         run: |
           go mod download
           go test -v -race ./...
+
   playwright-tests:
     name: Playwright E2E
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: week-5/e2e-tests
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - name: Install & Run
+          cache: "npm"
+          cache-dependency-path: week-5/e2e-tests/package-lock.json
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: week-4/go-rest-api/go.sum
+
+      - name: Install All Dependencies
+        run: |
+          # 1. Install UI dependencies (needed for npm run dev)
+          echo "Installing UI dependencies..."
+          cd ../react-cloud-ui && npm ci
+
+          # 2. Install E2E dependencies (Playwright)
+          echo "Installing E2E dependencies..."
+          cd ../e2e-tests && npm ci
+
+          # 3. Install Playwright Browsers
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
         env:
+          PORT: 3000
+          API_PORT: 8080
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
           ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        run: |
-          npm ci
-          npx playwright install --with-deps
-          npx playwright test
-      - uses: actions/upload-artifact@v4
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: npx playwright test
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: week-5/e2e-tests/playwright-report/
           retention-days: 7
 
   # BUILD & PUSH
