@@ -61,7 +61,7 @@ func (h *LogsHandler) GetAuditLogs(c *gin.Context) {
 	action := c.Query("action") // NEW: filter by action
 
 	// Build query
-	query := `{log_type="audit"}`
+	query := `{app="postgres-api"} |= "audit"`
 
 	// Add filters
 	filters := []string{}
