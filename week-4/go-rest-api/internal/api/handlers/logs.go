@@ -63,7 +63,7 @@ func (h *LogsHandler) GetAuditLogs(c *gin.Context) {
 	action := c.Query("action")
 
 	// Build query
-	query := `{app="postgres-api"} |= "audit"`
+	query := `{app="postgres-api"} |= "audit" |= "audit_action"`
 
 	// Add filters
 	filters := []string{}
@@ -177,10 +177,12 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
 }
 
 func getString(m map[string]interface{}, key string) string {
-	if v, ok := m[key].(string); ok {
-		return v
-	}
-	return ""
+    v, ok := m[key]
+    if !ok || v == nil {
+        return ""
+    }
+    // %v is the "value" format; it handles strings, ints, and floats safely
+    return fmt.Sprintf("%v", v)
 }
 
 func joinFilters(filters []string) string {
