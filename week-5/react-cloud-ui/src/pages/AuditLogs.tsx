@@ -18,28 +18,36 @@ import {
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { Search, User, Clock } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Search, User, Clock } from "lucide-react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import type { AuditLog } from "../shared/schema";
 
 export default function AuditLogs() {
   const { data: logs, isLoading } = useAuditLogs();
   const [search, setSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  const filteredLogs = (logs ?? []).filter((log: AuditLog) => {
-    const searchStr = search.toLowerCase();
+  const filteredLogs = useMemo(() => {
+    return (logs ?? [])
+      .filter((log: AuditLog) => {
+        const searchStr = search.toLowerCase();
+        const resource = log.resource_name?.toLowerCase() ?? "";
+        const user = log.user?.toLowerCase() ?? "";
+        const action = log.action?.toLowerCase() ?? "";
 
-    const resource = log.resource_name?.toLowerCase() ?? "";
-    const user = log.user?.toLowerCase() ?? "";
-    const action = log.action?.toLowerCase() ?? "";
-
-    return (
-      resource.includes(searchStr) ||
-      user.includes(searchStr) ||
-      action.includes(searchStr)
-    );
-  });
+        return (
+          resource.includes(searchStr) ||
+          user.includes(searchStr) ||
+          action.includes(searchStr)
+        );
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.timestamp).getTime();
+        const dateB = new Date(b.timestamp).getTime();
+        return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+      });
+  }, [logs, search, sortOrder]);
 
   return (
     <Layout>
@@ -87,8 +95,22 @@ export default function AuditLogs() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border hover:bg-secondary/50">
-                      <TableHead className="text-muted-foreground">
-                        Timestamp
+                      <TableHead
+                        className="text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
+                        onClick={() =>
+                          setSortOrder((prev) =>
+                            prev === "desc" ? "asc" : "desc",
+                          )
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>Timestamp</span>
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-200 ${
+                              sortOrder === "asc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
                       </TableHead>
                       <TableHead className="text-muted-foreground">
                         User
@@ -122,6 +144,7 @@ export default function AuditLogs() {
                                 : "-"}
                             </div>
                           </TableCell>
+
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <User className="w-3 h-3 text-muted-foreground" />
@@ -130,32 +153,24 @@ export default function AuditLogs() {
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                log.action === "DELETE"
-                                  ? "destructive"
-                                  : log.action === "UPDATE"
-                                    ? "secondary"
-                                    : "outline"
-                              }
-                              className="text-[10px]"
-                            >
-                              {log.action}
-                            </Badge>
-                          </TableCell>
+
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Badge
                                 variant={
                                   log.action === "DELETE"
                                     ? "destructive"
-                                    : "outline"
+                                    : log.action === "UPDATE"
+                                      ? "secondary"
+                                      : "outline"
                                 }
+                                className="text-[10px]"
                               >
                                 {log.action}
                               </Badge>
-                              {log.details?.success === true && (
+                              {(log.details?.status === 200 ||
+                                log.details?.status === 201 ||
+                                log.details?.status === 204) && (
                                 <div
                                   className="h-2 w-2 rounded-full bg-green-500"
                                   title="Success"
@@ -164,8 +179,9 @@ export default function AuditLogs() {
                             </div>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource_name}
+                            {log.resource_name || "N/A"}
                           </TableCell>
+
                           <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                             {log.details
                               ? typeof log.details === "string"
