@@ -30,5 +30,7 @@ export function useAuditLogs() {
       return api.logs.audit.responses[200].parse(await res.json());
     },
     enabled: !!headers.Authorization,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
   });
 }
