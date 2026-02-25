@@ -29,7 +29,7 @@ export default function AuditLogs() {
   const filteredLogs = logs?.filter(
     (log) =>
       log.resource_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.username?.toLowerCase().includes(search.toLowerCase()) ||
+      log.user?.toLowerCase().includes(search.toLowerCase()) ||
       log.action?.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -118,7 +118,7 @@ export default function AuditLogs() {
                             <div className="flex items-center gap-2">
                               <User className="w-3 h-3 text-muted-foreground" />
                               <span className="font-medium text-sm text-foreground">
-                                {log.username}
+                                {log.user}
                               </span>
                             </div>
                           </TableCell>
@@ -135,6 +135,25 @@ export default function AuditLogs() {
                             >
                               {log.action}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  log.action === "DELETE"
+                                    ? "destructive"
+                                    : "outline"
+                                }
+                              >
+                                {log.action}
+                              </Badge>
+                              {log.details?.success === true && (
+                                <div
+                                  className="h-2 w-2 rounded-full bg-green-500"
+                                  title="Success"
+                                />
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
                             {log.resource_name}

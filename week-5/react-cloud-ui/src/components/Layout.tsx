@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "../hooks/auth-hooks/use-auth";
-import { LayoutDashboard, FileText, LogOut, Database } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Terminal,
+  LogOut,
+  Database,
+} from "lucide-react";
 
 export function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
@@ -9,7 +15,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/audit-logs", label: "Audit Logs", icon: FileText },
+    { href: "/audit-logs", label: "Audit Logs", icon: Terminal },
     { href: "/service-logs", label: "Service Logs", icon: FileText },
   ];
 
