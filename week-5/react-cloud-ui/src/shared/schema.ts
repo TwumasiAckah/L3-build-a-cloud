@@ -88,14 +88,14 @@ export type ServiceLog = {
 
 export type AuditLog = {
   timestamp: string;
-  username: string;
-  action: string;
-  resource_type?: string;
-  resource_name: string;
+  message: string;
+  log_type: string;
+  action?: string;
+  resource_name?: string;
   user?: string;
-  ip?: string;
-  success?: boolean;
   level?: string;
-  log_type?: string;
+  ip?: string;
+  success?: boolean | string;
+  resource_type?: string;
   details?: Record<string, unknown>;
 };

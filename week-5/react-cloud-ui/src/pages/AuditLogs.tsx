@@ -21,17 +21,25 @@ import { Skeleton } from "../components/ui/skeleton";
 import { Search, User, Clock } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
+import type { AuditLog } from "../shared/schema";
 
 export default function AuditLogs() {
   const { data: logs, isLoading } = useAuditLogs();
   const [search, setSearch] = useState("");
 
-  const filteredLogs = logs?.filter(
-    (log) =>
-      log.resource_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.user?.toLowerCase().includes(search.toLowerCase()) ||
-      log.action?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredLogs = (logs ?? []).filter((log: AuditLog) => {
+    const searchStr = search.toLowerCase();
+
+    const resource = log.resource_name?.toLowerCase() ?? "";
+    const user = log.user?.toLowerCase() ?? "";
+    const action = log.action?.toLowerCase() ?? "";
+
+    return (
+      resource.includes(searchStr) ||
+      user.includes(searchStr) ||
+      action.includes(searchStr)
+    );
+  });
 
   return (
     <Layout>
@@ -118,7 +126,7 @@ export default function AuditLogs() {
                             <div className="flex items-center gap-2">
                               <User className="w-3 h-3 text-muted-foreground" />
                               <span className="font-medium text-sm text-foreground">
-                                {log.user}
+                                {log.user || "anonymous"}
                               </span>
                             </div>
                           </TableCell>
