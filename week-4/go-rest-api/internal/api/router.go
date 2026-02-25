@@ -9,13 +9,9 @@ import (
 
 	"github.com/gin-contrib/cors"
 
-	swaggerFiles "github.com/swaggo/files"
-
 	"github.com/gin-gonic/gin"
 
 	_ "week-4/go-rest-api/docs"
-
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // SetupRouter initializes the HTTP router and wires
@@ -32,8 +28,7 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 
 	router.Use(cors.Default())
 
-   // Apply audit middleware to all routes
-    router.Use(middleware.AuditMiddleware())
+
 
     // Initialize audit logger
 	lokiURL := os.Getenv("LOKI_URL")
@@ -46,11 +41,11 @@ func SetupRouter(k8sClient *k8s.Client) *gin.Engine {
 	// Public routes
 	router.GET("/", handlers.NewHealthHandler().Health)
 	router.POST("api/login", handlers.Login)
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API routes
 	api := router.Group("/api")
 	api.Use(middleware.JWTAuthMiddleware())
+    api.Use(middleware.AuditMiddleware())
 	{
 		dbHandler := handlers.NewDatabaseHandler(k8sClient)
 

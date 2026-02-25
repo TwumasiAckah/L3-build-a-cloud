@@ -23,6 +23,7 @@ func InitLogger() {
 // Audit log helper
 func AuditLog(user, action, resourceType, resourceName, ip string, success bool, details map[string]interface{}) {
 	Logger.Info("Audit event",
+		zap.Time("timestamp", time.Now()),
 		zap.String("log_type", "audit_action"),
 		zap.String("user", user),
 		zap.String("action", action),

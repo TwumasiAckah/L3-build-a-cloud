@@ -136,7 +136,7 @@ export default function AuditLogs() {
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <Clock className="w-3 h-3" />
-                              {log.timestamp
+                              {log.details?.time || log.timestamp
                                 ? format(
                                     new Date(log.timestamp),
                                     "MMM d, HH:mm:ss",
@@ -179,7 +179,9 @@ export default function AuditLogs() {
                             </div>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource_name || "N/A"}
+                            {log.resource_name === "N/A"
+                              ? ""
+                              : log.resource_name}
                           </TableCell>
 
                           <TableCell className="text-sm text-muted-foreground max-w-xs truncate">

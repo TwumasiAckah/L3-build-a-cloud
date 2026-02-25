@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"strings"
 	"time"
 
 	"week-4/go-rest-api/internal/logging"
@@ -91,6 +92,7 @@ func getUserFromContext(c *gin.Context) struct{ Username string } {
     return struct{ Username string }{Username: "anonymous"}
 }
 
-func contains(s, substr string) bool {
-    return len(s) >= len(substr) && s[len(s)-len(substr):] == substr
+
+func contains(path, substr string) bool {
+    return strings.Contains(path, substr)
 }
