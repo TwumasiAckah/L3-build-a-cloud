@@ -1,4 +1,3 @@
-// handlers/logs.go
 package handlers
 
 import (
@@ -30,6 +29,7 @@ type LogEntry struct {
 	User      string                 `json:"user,omitempty"`
 	Action    string                 `json:"action,omitempty"`
 	Resource  string                 `json:"resource_name,omitempty"`
+	Success   string                 `json:"success,omitempty"`
 	Details   map[string]interface{} `json:"details,omitempty"`
 }
 
@@ -153,23 +153,38 @@ func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
                 continue
             }
 
-            // Convert to LogEntry
-            entry := LogEntry{
-                Timestamp: formatTimestamp(timestampNs),
-                LogType:   getString(logData, "log_type"),
-                Message:   getString(logData, "message"),
-                Level:     getString(logData, "level"),
-                User:      getString(logData, "user"),
-                Action:    getString(logData, "action"),
-                Resource:  getString(logData, "resource_name"),
-            }
+			// Initialize with common fields
+			entry := LogEntry{
+				Timestamp: formatTimestamp(timestampNs),
+				Level:     getString(logData, "level"),
+				LogType:   getString(logData, "log_type"),
+				User:      getString(logData, "user"),
+			}
 
-            // Handle nested details if they exist
-            if details, ok := logData["details"].(map[string]interface{}); ok {
-                entry.Details = details
-            }
+			// Handle specific field mapping based on LogType
+			if entry.LogType == "audit_action" {
+				// Rich events like "DELETE"
+				entry.Message = getString(logData, "message")
+				entry.Action = getString(logData, "action")
+				entry.Resource = getString(logData, "resource_name")
+			} else {
+				// Standard HTTP events like "GET /"
+				entry.Message = "Request handled"
+				entry.Action = getString(logData, "method")
+				entry.Resource = getString(logData, "path")
+			}
 
-            logs = append(logs, entry)
+			// Capture nested details
+			if details, ok := logData["details"].(map[string]interface{}); ok {
+				entry.Details = details
+			}
+
+			// Fallback for User if empty (common in some log formats)
+			if entry.User == "" {
+				entry.User = "anonymous"
+			}
+
+			logs = append(logs, entry)
         }
     }
 
