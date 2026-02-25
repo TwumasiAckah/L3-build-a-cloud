@@ -4,9 +4,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +60,7 @@ func (h *LogsHandler) GetServiceLogs(c *gin.Context) {
 func (h *LogsHandler) GetAuditLogs(c *gin.Context) {
 	limit := c.DefaultQuery("limit", "100")
 	user := c.Query("user")
-	action := c.Query("action") // NEW: filter by action
+	action := c.Query("action")
 
 	// Build query
 	query := `{app="postgres-api"} |= "audit"`
@@ -86,81 +88,92 @@ func (h *LogsHandler) GetAuditLogs(c *gin.Context) {
 }
 
 func (h *LogsHandler) queryLoki(query, limit string) ([]LogEntry, error) {
-	// Build Loki query URL
-	params := url.Values{}
-	params.Add("query", query)
-	params.Add("limit", limit)
-	params.Add("start", fmt.Sprintf("%d", time.Now().Add(-24*time.Hour).UnixNano()))
-	params.Add("direction", "backward")
+    // Build Loki query URL
+    params := url.Values{}
+    params.Add("query", query)
+    params.Add("limit", limit)
 
-	lokiURL := fmt.Sprintf("%s/loki/api/v1/query_range?%s", h.lokiURL, params.Encode())
+    params.Add("start", fmt.Sprintf("%d", time.Now().Add(-24*time.Hour).UnixNano()))
+    params.Add("direction", "backward")
 
-	// Query Loki
-	resp, err := http.Get(lokiURL)
-	if err != nil {
-		return nil, fmt.Errorf("loki request failed: %w", err)
-	}
-	defer resp.Body.Close()
+    lokiURL := fmt.Sprintf("%s/loki/api/v1/query_range?%s", h.lokiURL, params.Encode())
 
-	// Check response status
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("loki returned status %d", resp.StatusCode)
-	}
+    // Query Loki
+    resp, err := http.Get(lokiURL)
+    if err != nil {
+        return nil, fmt.Errorf("loki request failed: %w", err)
+    }
+    defer resp.Body.Close()
 
-	// Parse Loki response
-	var lokiResp struct {
-		Status string `json:"status"`
-		Data   struct {
-			ResultType string `json:"resultType"`
-			Result     []struct {
-				Stream map[string]string `json:"stream"`
-				Values [][]string        `json:"values"`
-			} `json:"result"`
-		} `json:"data"`
-	}
+    // Check response status
+    if resp.StatusCode != http.StatusOK {
 
-	if err := json.NewDecoder(resp.Body).Decode(&lokiResp); err != nil {
-		return nil, fmt.Errorf("failed to parse loki response: %w", err)
-	}
+        body, _ := io.ReadAll(resp.Body)
+        return nil, fmt.Errorf("loki returned status %d: %s", resp.StatusCode, string(body))
+    }
 
-	// Transform to LogEntry
-	var logs []LogEntry
-	for _, result := range lokiResp.Data.Result {
-		for _, value := range result.Values {
-			if len(value) < 2 {
-				continue
-			}
+    // Parse Loki response
+    var lokiResp struct {
+        Status string `json:"status"`
+        Data   struct {
+            ResultType string `json:"resultType"`
+            Result     []struct {
+                Stream map[string]string `json:"stream"`
+                Values [][]string        `json:"values"`
+            } `json:"result"`
+        } `json:"data"`
+    }
 
-			// Loki timestamp is in nanoseconds
-			timestampNs := value[0]
-			logLine := value[1]
+    if err := json.NewDecoder(resp.Body).Decode(&lokiResp); err != nil {
+        return nil, fmt.Errorf("failed to parse loki response: %w", err)
+    }
 
-			// Parse JSON log line
-			var logData map[string]interface{}
-			if err := json.Unmarshal([]byte(logLine), &logData); err != nil {
-				continue
-			}
+    // Transform to LogEntry
+    var logs []LogEntry
+    for _, result := range lokiResp.Data.Result {
+        for _, value := range result.Values {
+            if len(value) < 2 {
+                continue
+            }
 
-			// Convert to LogEntry
-			entry := LogEntry{
-				Timestamp: formatTimestamp(timestampNs),
-				LogType:   getString(logData, "log_type"),
-				Message:   getString(logData, "message"),
-				Level:     getString(logData, "level"),
-				User:      getString(logData, "user"),
-				Action:    getString(logData, "action"),
-				Resource:  getString(logData, "resource_name"),
-			}
+            // Loki timestamp is index 0, log line is index 1
+            timestampNs := value[0]
+            logLine := value[1]
 
-			if details, ok := logData["details"].(map[string]interface{}); ok {
-				entry.Details = details
-			}
+            // Parse CRI prefix
+            startIdx := strings.Index(logLine, "{")
+            if startIdx == -1 {
+                continue // Not a JSON log, skip it
+            }
+            cleanJson := logLine[startIdx:]
 
-			logs = append(logs, entry)
-		}
-	}
+            // Parse the cleaned JSON log line
+            var logData map[string]interface{}
+            if err := json.Unmarshal([]byte(cleanJson), &logData); err != nil {
+                continue
+            }
 
-	return logs, nil
+            // Convert to LogEntry
+            entry := LogEntry{
+                Timestamp: formatTimestamp(timestampNs),
+                LogType:   getString(logData, "log_type"),
+                Message:   getString(logData, "message"),
+                Level:     getString(logData, "level"),
+                User:      getString(logData, "user"),
+                Action:    getString(logData, "action"),
+                Resource:  getString(logData, "resource_name"),
+            }
+
+            // Handle nested details if they exist
+            if details, ok := logData["details"].(map[string]interface{}); ok {
+                entry.Details = details
+            }
+
+            logs = append(logs, entry)
+        }
+    }
+
+    return logs, nil
 }
 
 func getString(m map[string]interface{}, key string) string {
