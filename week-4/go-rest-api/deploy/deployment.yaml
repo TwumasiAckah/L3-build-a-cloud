@@ -20,7 +20,7 @@ spec:
         - name: stackit-registry-secret
       containers:
         - name: api
-          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:ec0967eb641a586ebcf617aaf928d26a6abeddc6
+          image: registry.onstackit.cloud/l3-cloud-psql/postgres-api:f00258cebb9073cfd588eff84de5729f62a55c86
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -115,7 +115,7 @@ spec:
         - name: stackit-registry-secret
       containers:
         - name: ui
-          image: registry.onstackit.cloud/l3-cloud-psql/postgres-ui:ec0967eb641a586ebcf617aaf928d26a6abeddc6
+          image: registry.onstackit.cloud/l3-cloud-psql/postgres-ui:f00258cebb9073cfd588eff84de5729f62a55c86
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
