@@ -18,14 +18,7 @@ import {
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import {
-  ChevronDown,
-  Search,
-  User,
-  Clock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { ChevronDown, Search, User, Clock } from "lucide-react";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import type { AuditLog } from "../shared/schema";
@@ -55,22 +48,6 @@ export default function AuditLogs() {
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
   }, [logs, search, sortOrder]);
-
-  const formatDetails = (details?: Record<string, unknown>) => {
-    if (!details) return "-";
-
-    // Extract useful info
-    const parts = [];
-    if (details.method) parts.push(details.method);
-    if (details.path) parts.push(details.path);
-    if (details.status_code || details.status)
-      parts.push(`Status: ${details.status_code || details.status}`);
-    if (details.duration_ms) parts.push(`${details.duration_ms}ms`);
-
-    return parts.length > 0
-      ? parts.join(" • ")
-      : JSON.stringify(details, null, 0);
-  };
 
   return (
     <Layout>
@@ -178,51 +155,41 @@ export default function AuditLogs() {
                           </TableCell>
 
                           <TableCell>
-                            <Badge
-                              variant={
-                                log.action === "DELETE"
-                                  ? "destructive"
-                                  : log.action === "UPDATE"
-                                    ? "secondary"
-                                    : "outline"
-                              }
-                              className="text-[10px]"
-                            >
-                              {log.action}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  log.action === "DELETE"
+                                    ? "destructive"
+                                    : log.action === "UPDATE"
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                                className="text-[10px]"
+                              >
+                                {log.action}
+                              </Badge>
+                              {(log.details?.status === 200 ||
+                                log.details?.status === 201 ||
+                                log.details?.status === 204) && (
+                                <div
+                                  className="h-2 w-2 rounded-full bg-green-500"
+                                  title="Success"
+                                />
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource_name || "-"}
+                            {log.resource_name === "N/A"
+                              ? ""
+                              : log.resource_name}
                           </TableCell>
 
-                          <TableCell>
-                            {log.success ? (
-                              <div className="flex items-center gap-1.5 text-emerald-500">
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="text-xs font-medium">
-                                  Success
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-1.5 text-rose-500">
-                                <XCircle className="w-4 h-4" />
-                                <span className="text-xs font-medium">
-                                  Failed
-                                </span>
-                              </div>
-                            )}
-                          </TableCell>
-
-                          {/* <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                          <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                             {log.details
                               ? typeof log.details === "string"
                                 ? log.details
                                 : JSON.stringify(log.details)
                               : "-"}
-                          </TableCell> */}
-
-                          <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                            {formatDetails(log.details)}
                           </TableCell>
                         </TableRow>
                       ))
