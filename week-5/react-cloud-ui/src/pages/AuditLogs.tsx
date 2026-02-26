@@ -18,7 +18,14 @@ import {
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
-import { ChevronDown, Search, User, Clock } from "lucide-react";
+import {
+  ChevronDown,
+  Search,
+  User,
+  Clock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import type { AuditLog } from "../shared/schema";
@@ -49,28 +56,20 @@ export default function AuditLogs() {
       });
   }, [logs, search, sortOrder]);
 
-  const formatTimestamp = (timestamp: string) => {
-    try {
-      if (timestamp.length > 13) {
-        const ns = parseInt(timestamp);
-        return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
-      }
-      // Otherwise treat as ISO string
-      return format(new Date(timestamp), "MMM d, HH:mm:ss");
-    } catch {
-      return timestamp;
-    }
-  };
-
   const formatDetails = (details?: Record<string, unknown>) => {
     if (!details) return "-";
 
+    // Extract useful info
     const parts = [];
     if (details.method) parts.push(details.method);
-    if (details.status_code) parts.push(`Status: ${details.status_code}`);
+    if (details.path) parts.push(details.path);
+    if (details.status_code || details.status)
+      parts.push(`Status: ${details.status_code || details.status}`);
     if (details.duration_ms) parts.push(`${details.duration_ms}ms`);
 
-    return parts.length > 0 ? parts.join(" • ") : JSON.stringify(details);
+    return parts.length > 0
+      ? parts.join(" • ")
+      : JSON.stringify(details, null, 0);
   };
 
   return (
@@ -160,17 +159,24 @@ export default function AuditLogs() {
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <Clock className="w-3 h-3" />
-                              {formatTimestamp(log.timestamp)}
+                              {log.details?.time || log.timestamp
+                                ? format(
+                                    new Date(log.timestamp),
+                                    "MMM d, HH:mm:ss",
+                                  )
+                                : "-"}
                             </div>
                           </TableCell>
+
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <User className="w-3 h-3 text-muted-foreground" />
                               <span className="font-medium text-sm text-foreground">
-                                {log.user}
+                                {log.user || "anonymous"}
                               </span>
                             </div>
                           </TableCell>
+
                           <TableCell>
                             <Badge
                               variant={
@@ -186,8 +192,35 @@ export default function AuditLogs() {
                             </Badge>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource_name}
+                            {log.resource_name || "-"}
                           </TableCell>
+
+                          <TableCell>
+                            {log.success ? (
+                              <div className="flex items-center gap-1.5 text-emerald-500">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="text-xs font-medium">
+                                  Success
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 text-rose-500">
+                                <XCircle className="w-4 h-4" />
+                                <span className="text-xs font-medium">
+                                  Failed
+                                </span>
+                              </div>
+                            )}
+                          </TableCell>
+
+                          {/* <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                            {log.details
+                              ? typeof log.details === "string"
+                                ? log.details
+                                : JSON.stringify(log.details)
+                              : "-"}
+                          </TableCell> */}
+
                           <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
                             {formatDetails(log.details)}
                           </TableCell>
