@@ -49,18 +49,18 @@ export default function AuditLogs() {
       });
   }, [logs, search, sortOrder]);
 
-  const formatTimestamp = (timestamp: string) => {
-    try {
-      if (timestamp.length > 13) {
-        const ns = parseInt(timestamp);
-        return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
-      }
-      // Otherwise treat as ISO string
-      return format(new Date(timestamp), "MMM d, HH:mm:ss");
-    } catch {
-      return timestamp;
-    }
-  };
+  // const formatTimestamp = (timestamp: string) => {
+  //   try {
+  //     if (timestamp.length > 13) {
+  //       const ns = parseInt(timestamp);
+  //       return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
+  //     }
+  //     // Otherwise treat as ISO string
+  //     return format(new Date(timestamp), "MMM d, HH:mm:ss");
+  //   } catch {
+  //     return timestamp;
+  //   }
+  // };
 
   const formatDetails = (details?: Record<string, unknown>) => {
     if (!details) return "-";
@@ -160,7 +160,12 @@ export default function AuditLogs() {
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <Clock className="w-3 h-3" />
-                              {formatTimestamp(log.timestamp)}
+                              {log.details?.time || log.timestamp
+                                ? format(
+                                    new Date(log.timestamp),
+                                    "MMM d, HH:mm:ss",
+                                  )
+                                : "-"}
                             </div>
                           </TableCell>
                           <TableCell>
