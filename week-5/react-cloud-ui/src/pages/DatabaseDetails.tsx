@@ -1,5 +1,5 @@
 import { useParams, Link } from "wouter";
-// import { useServiceLogs } from "../hooks/use-logs";
+import { useServiceLogs } from "../hooks/use-logs";
 import {
   useDatabase,
   useDatabaseCredentials,
@@ -17,7 +17,7 @@ import { Button } from "../components/ui/button";
 import { Skeleton } from "../components/ui/skeleton";
 import { Slider } from "../components/ui/slider";
 import { Input } from "../components/ui/input";
-// import { Badge } from "../components/ui/badge";
+import { Badge } from "../components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
-import { ArrowLeft, Copy, Check, Settings, Key } from "lucide-react";
+import { ArrowLeft, Copy, Check, Settings, Key, Terminal } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
@@ -199,19 +199,19 @@ function UpdateConfigDialog({
 export default function DatabaseDetails() {
   const { name } = useParams<{ name: string }>();
   const { data: db, isLoading, isError } = useDatabase(name!);
-  // const { data: logs } = useServiceLogs(name!);
+  const { data: logs } = useServiceLogs(name!);
 
-  // const formatTimestamp = (timestamp: string) => {
-  //   try {
-  //     if (timestamp.length > 13) {
-  //       const ns = parseInt(timestamp);
-  //       return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
-  //     }
-  //     return format(new Date(timestamp), "MMM d, HH:mm:ss");
-  //   } catch {
-  //     return timestamp;
-  //   }
-  // };
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      if (timestamp.length > 13) {
+        const ns = parseInt(timestamp);
+        return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
+      }
+      return format(new Date(timestamp), "MMM d, HH:mm:ss");
+    } catch {
+      return timestamp;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -338,7 +338,7 @@ export default function DatabaseDetails() {
                 </div>
               </CardContent>
             </Card>
-            {/* <Card className="border-border bg-card">
+            <Card className="border-border bg-card">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Terminal className="w-5 h-5 text-primary" />
@@ -400,7 +400,7 @@ export default function DatabaseDetails() {
                   )}
                 </div>
               </CardContent>
-            </Card> */}
+            </Card>
           </div>
 
           {/* Sidebar Info */}
