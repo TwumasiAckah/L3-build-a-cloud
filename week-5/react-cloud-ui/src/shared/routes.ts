@@ -162,12 +162,8 @@ export const api = {
         200: z.array(
           z.object({
             timestamp: z.string(),
-            log_type: z.literal("service"),
-            database_name: z.string(),
             level: z.enum(["INFO", "WARN", "ERROR"]),
-            event_type: z.string(),
             message: z.string(),
-            details: z.record(z.string(), z.unknown()).optional(),
           }),
         ),
       },
@@ -186,7 +182,7 @@ export const api = {
             ip: z.string().optional(),
             success: z.boolean().optional(),
             level: z.string().optional(),
-            log_type: z.literal("audit"),
+            log_type: z.string(),
             message: z.string(),
             details: z.record(z.string(), z.unknown()).optional(),
           }),
