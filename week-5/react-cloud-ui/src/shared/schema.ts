@@ -80,7 +80,7 @@ export type ServiceLog = {
   timestamp: string;
   level: "INFO" | "WARN" | "ERROR";
   message: string;
-  log_type?: string;
+  log_type?: "service";
   database_name?: string;
   event_type?: string;
   details?: Record<string, unknown>;
@@ -89,7 +89,7 @@ export type ServiceLog = {
 export type AuditLog = {
   timestamp: string;
   message: string;
-  log_type: string;
+  log_type: "audit";
   action?: string;
   resource_name?: string;
   user?: string;

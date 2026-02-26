@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/auth-hooks/use-auth";
 import {
   LayoutDashboard,
   FileText,
-  Terminal,
+  // Terminal,
   LogOut,
   Database,
 } from "lucide-react";
@@ -15,8 +15,8 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/audit-logs", label: "Audit Logs", icon: Terminal },
-    { href: "/service-logs", label: "Service Logs", icon: FileText },
+    { href: "/audit-logs", label: "Audit Logs", icon: FileText },
+    // { href: "/service-logs", label: "Service Logs", icon: FileText },
   ];
 
   return (

@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
-import { ArrowLeft, Copy, Check, Settings, Key } from "lucide-react";
+import { ArrowLeft, Copy, Check, Settings, Key, Terminal } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { cn } from "../lib/utils";
@@ -199,7 +199,19 @@ function UpdateConfigDialog({
 export default function DatabaseDetails() {
   const { name } = useParams<{ name: string }>();
   const { data: db, isLoading, isError } = useDatabase(name!);
-  const { data: logs, isLoading: logsLoading } = useServiceLogs(name!);
+  const { data: logs } = useServiceLogs(name!);
+
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      if (timestamp.length > 13) {
+        const ns = parseInt(timestamp);
+        return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
+      }
+      return format(new Date(timestamp), "MMM d, HH:mm:ss");
+    } catch {
+      return timestamp;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -326,82 +338,67 @@ export default function DatabaseDetails() {
                 </div>
               </CardContent>
             </Card>
-
             <Card className="border-border bg-card">
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-primary" />
                   <CardTitle className="text-lg text-foreground">
                     Service Logs
                   </CardTitle>
-                  <Badge variant="outline" className="text-xs">
-                    Last 24h
-                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                {logsLoading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((i) => (
-                      <Skeleton key={i} className="h-16 w-full" />
-                    ))}
-                  </div>
-                ) : logs && logs.length > 0 ? (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {logs.map((log, idx) => (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {logs && logs.length > 0 ? (
+                    logs.map((log, index) => (
                       <div
-                        key={idx}
-                        className={cn(
-                          "p-3 rounded-lg border text-sm",
-                          log.level === "ERROR"
-                            ? "bg-destructive/10 border-destructive/20"
-                            : log.level === "WARN"
-                              ? "bg-yellow-500/10 border-yellow-500/20"
-                              : "bg-muted/50 border-border",
-                        )}
+                        key={`${log.timestamp}-${index}`}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border border-border"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge
-                                variant={
-                                  log.level === "ERROR"
-                                    ? "destructive"
-                                    : log.level === "WARN"
-                                      ? "default"
-                                      : "outline"
-                                }
-                                className="text-[10px]"
-                              >
-                                {log.level}
-                              </Badge>
-                              {log.event_type && (
-                                <span className="text-xs text-muted-foreground font-mono">
-                                  {log.event_type}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-foreground">
-                              {log.message}
-                            </p>
-                            {log.details &&
-                              Object.keys(log.details).length > 0 && (
-                                <pre className="mt-2 text-xs text-muted-foreground font-mono bg-background/50 p-2 rounded overflow-x-auto">
+                        <Badge
+                          variant={
+                            log.level === "ERROR"
+                              ? "destructive"
+                              : log.level === "WARN"
+                                ? "default"
+                                : "outline"
+                          }
+                          className="text-[10px] mt-0.5"
+                        >
+                          {log.level}
+                        </Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                            <span>{formatTimestamp(log.timestamp)}</span>
+                            <span>•</span>
+                            <span className="font-medium">
+                              {log.event_type}
+                            </span>
+                          </div>
+                          <p className="text-sm text-foreground">
+                            {log.message}
+                          </p>
+                          {log.details &&
+                            Object.keys(log.details).length > 0 && (
+                              <details className="mt-2">
+                                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                                  View details
+                                </summary>
+                                <pre className="mt-2 text-xs bg-background p-2 rounded overflow-x-auto">
                                   {JSON.stringify(log.details, null, 2)}
                                 </pre>
-                              )}
-                          </div>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {format(new Date(log.timestamp), "HH:mm:ss")}
-                          </span>
+                              </details>
+                            )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No logs available
-                  </div>
-                )}
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Terminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No logs available</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -49,6 +49,30 @@ export default function AuditLogs() {
       });
   }, [logs, search, sortOrder]);
 
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      if (timestamp.length > 13) {
+        const ns = parseInt(timestamp);
+        return format(new Date(ns / 1000000), "MMM d, HH:mm:ss");
+      }
+      // Otherwise treat as ISO string
+      return format(new Date(timestamp), "MMM d, HH:mm:ss");
+    } catch {
+      return timestamp;
+    }
+  };
+
+  const formatDetails = (details?: Record<string, unknown>) => {
+    if (!details) return "-";
+
+    const parts = [];
+    if (details.method) parts.push(details.method);
+    if (details.status_code) parts.push(`Status: ${details.status_code}`);
+    if (details.duration_ms) parts.push(`${details.duration_ms}ms`);
+
+    return parts.length > 0 ? parts.join(" • ") : JSON.stringify(details);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -136,60 +160,36 @@ export default function AuditLogs() {
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <Clock className="w-3 h-3" />
-                              {log.details?.time || log.timestamp
-                                ? format(
-                                    new Date(log.timestamp),
-                                    "MMM d, HH:mm:ss",
-                                  )
-                                : "-"}
+                              {formatTimestamp(log.timestamp)}
                             </div>
                           </TableCell>
-
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <User className="w-3 h-3 text-muted-foreground" />
                               <span className="font-medium text-sm text-foreground">
-                                {log.user || "anonymous"}
+                                {log.user}
                               </span>
                             </div>
                           </TableCell>
-
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant={
-                                  log.action === "DELETE"
-                                    ? "destructive"
-                                    : log.action === "UPDATE"
-                                      ? "secondary"
-                                      : "outline"
-                                }
-                                className="text-[10px]"
-                              >
-                                {log.action}
-                              </Badge>
-                              {(log.details?.status === 200 ||
-                                log.details?.status === 201 ||
-                                log.details?.status === 204) && (
-                                <div
-                                  className="h-2 w-2 rounded-full bg-green-500"
-                                  title="Success"
-                                />
-                              )}
-                            </div>
+                            <Badge
+                              variant={
+                                log.action === "DELETE"
+                                  ? "destructive"
+                                  : log.action === "UPDATE"
+                                    ? "secondary"
+                                    : "outline"
+                              }
+                              className="text-[10px]"
+                            >
+                              {log.action}
+                            </Badge>
                           </TableCell>
                           <TableCell className="font-mono text-xs text-foreground">
-                            {log.resource_name === "N/A"
-                              ? ""
-                              : log.resource_name}
+                            {log.resource_name}
                           </TableCell>
-
                           <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-                            {log.details
-                              ? typeof log.details === "string"
-                                ? log.details
-                                : JSON.stringify(log.details)
-                              : "-"}
+                            {formatDetails(log.details)}
                           </TableCell>
                         </TableRow>
                       ))
