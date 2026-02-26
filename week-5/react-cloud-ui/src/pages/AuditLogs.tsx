@@ -67,7 +67,7 @@ export default function AuditLogs() {
 
     const parts = [];
     if (details.method) parts.push(details.method);
-    if (details.status_code) parts.push(`Status: ${details.status_code}`);
+    if (details.status) parts.push(`Status: ${details.status}`);
     if (details.duration_ms) parts.push(`${details.duration_ms}ms`);
 
     return parts.length > 0 ? parts.join(" • ") : JSON.stringify(details);
